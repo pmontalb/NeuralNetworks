@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <ColumnWiseMatrix.h>
 
 #include <functional>
@@ -37,6 +36,7 @@ namespace nn
 		size_t miniBacthSize = 100;
 		
 		double learningRate = 0.1;
+		double lambda = 5.0;
 		
 		double GetAverageLearningRate() const noexcept
 		{

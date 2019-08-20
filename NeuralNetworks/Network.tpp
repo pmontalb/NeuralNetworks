@@ -1,17 +1,28 @@
 
+#include <NeuralNetworks/Initializers/SmallVarianceRandomBiasWeightInitializer.h>
+#include <NeuralNetworks/CostFunctions/CrossEntropyCostFunction.h>
+
 namespace nn
 {
 	template<MathDomain mathDomain>
 	Network<mathDomain>::Network(const std::vector<size_t>& nNeurons) noexcept
-		: _nNeurons(nNeurons)
+		: Network(nNeurons, SmallVarianceRandomBiasWeightInitializer<mathDomain>(), std::make_unique<CrossEntropyCostFunction<mathDomain>>())
+	{
+	}
+	
+	template<MathDomain mathDomain>
+	Network<mathDomain>::Network(const std::vector<size_t>& nNeurons,
+								 IBiasWeightInitializer<mathDomain>&& initializer,
+								 std::unique_ptr<ICostFunction<mathDomain>>&& costFunction) noexcept
+			: _nNeurons(nNeurons), _costFunction(std::move(costFunction))
 	{
 		for (size_t l = 0; l < GetNumberOfLayers(); ++l)
 		{
 			_biases.emplace_back(vec(_nNeurons[l + 1], 0.0));
-			_biases.back().RandomGaussian();
+			initializer.Set(_biases.back());
 			
 			_weights.emplace_back(mat(_nNeurons[l + 1], _nNeurons[l], 0.0));
-			_weights.back().RandomGaussian();
+			initializer.Set(_weights.back());
 		}
 	}
 	
@@ -161,11 +172,9 @@ namespace nn
 	{
 		vec& expected = data.activations[GetNumberOfLayers() - 1];
 		const vec& actual = *data.networkTrainingData.trainingData.expectedOutput.columns[i];
-		
 		assert(expected.size() == actual.size());
 		
-		expected -= actual;
-		expected %= data.activationsDerivative[GetNumberOfLayers() - 1];
+		_costFunction->EvaluateDerivative(expected, actual, data.activationsDerivative[GetNumberOfLayers() - 1]);
 	}
 	
 	template<MathDomain mathDomain>
@@ -174,11 +183,15 @@ namespace nn
 		Stopwatch sw(true);
 		
 		const double averageLearningRate = data.networkTrainingData.hyperParameters.GetAverageLearningRate();
+		const double regularizationFactor = 1.0 - (data.networkTrainingData.hyperParameters.learningRate * data.networkTrainingData.hyperParameters.lambda) / data.networkTrainingData.trainingData.GetLength();
 		for (size_t i = 0; i < _biases.size(); ++i)
 			_biases[i].AddEqual(data.biasGradient[i], -averageLearningRate);
 
 		for (size_t i = 0; i < _weights.size(); ++i)
+		{
+			_weights[i].Scale(regularizationFactor);
 			_weights[i].AddEqual(data.weightGradient[i], -averageLearningRate);
+		}
 		
 		sw.Stop();
 		

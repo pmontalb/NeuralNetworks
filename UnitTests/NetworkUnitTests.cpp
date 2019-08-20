@@ -2,6 +2,10 @@
 #include <gtest/gtest.h>
 
 #include <Network.h>
+#include <NeuralNetworks/Initializers/RandomBiasWeightInitializer.h>
+#include <NeuralNetworks/Initializers/SmallVarianceRandomBiasWeightInitializer.h>
+#include <NeuralNetworks/CostFunctions/QuadraticCostFunction.h>
+#include <NeuralNetworks/CostFunctions/CrossEntropyCostFunction.h>
 
 #include <map>
 
@@ -64,9 +68,127 @@ namespace nnt
 		data.hyperParameters.nEpochs = 3;
 		data.hyperParameters.miniBacthSize = 10;
 		data.hyperParameters.learningRate = 3.0;
+		data.hyperParameters.lambda = 0.0;
 		
 		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
-		nn::Network<md> network(networkTopology);
+		nn::Network<md> network(networkTopology, nn::RandomBiasWeightInitializer<md>(), std::make_unique<nn::QuadraticCostFunction<md>>());
+		network.Train(data);
+	}
+	
+	TEST_F(NetworkTests, TrivialNetworkSmallVarianceWeightsConsistency)
+	{
+		auto trainingData = GetData<md>("Training", 784, 10, 50000);
+		auto validationData = GetData<md>("Validation", 784, 10, 10000);
+		auto testData = GetData<md>("Test", 784, 10, 10000);
+		
+		nn::Vector<MathDomain::Int> cache1(10000u);
+		nn::Vector<MathDomain::Int> cache2(10000u);
+		nn::Vector<MathDomain::Int> cache3(10000u);
+		size_t currentIter = 0;
+		
+		std::vector<int> expectedScores = { 9393, 9393, 9482 };
+		std::function<void(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
+		{
+			assert(modelOutput.nCols() == cache1.size());
+			modelOutput.ColumnWiseArgAbsMaximum(cache1);
+			
+			assert(expectedOutput.nCols() == cache2.size());
+			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
+			
+			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			
+			ASSERT_EQ(expectedScores[currentIter++], score);
+		};
+		
+		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
+		data.debugLevel = 2;
+		data.epochCalculation = 1;
+		
+		data.hyperParameters.nEpochs = 3;
+		data.hyperParameters.miniBacthSize = 10;
+		data.hyperParameters.learningRate = 3.0;
+		data.hyperParameters.lambda = 0.0;
+		
+		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
+		nn::Network<md> network(networkTopology, nn::SmallVarianceRandomBiasWeightInitializer<md>(), std::make_unique<nn::QuadraticCostFunction<md>>());
+		network.Train(data);
+	}
+	
+	TEST_F(NetworkTests, TrivialNetworkSmallVarianceWeightsRegularizedConsistency)
+	{
+		auto trainingData = GetData<md>("Training", 784, 10, 50000);
+		auto validationData = GetData<md>("Validation", 784, 10, 10000);
+		auto testData = GetData<md>("Test", 784, 10, 10000);
+		
+		nn::Vector<MathDomain::Int> cache1(10000u);
+		nn::Vector<MathDomain::Int> cache2(10000u);
+		nn::Vector<MathDomain::Int> cache3(10000u);
+		size_t currentIter = 0;
+		
+		std::vector<int> expectedScores = { 9173, 9276, 9371 };
+		std::function<void(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
+		{
+			assert(modelOutput.nCols() == cache1.size());
+			modelOutput.ColumnWiseArgAbsMaximum(cache1);
+			
+			assert(expectedOutput.nCols() == cache2.size());
+			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
+			
+			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			
+			ASSERT_EQ(expectedScores[currentIter++], score);
+		};
+		
+		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
+		data.debugLevel = 2;
+		data.epochCalculation = 1;
+		
+		data.hyperParameters.nEpochs = 3;
+		data.hyperParameters.miniBacthSize = 10;
+		data.hyperParameters.learningRate = 0.5;
+		data.hyperParameters.lambda = 0.1;
+		
+		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
+		nn::Network<md> network(networkTopology, nn::SmallVarianceRandomBiasWeightInitializer<md>(), std::make_unique<nn::QuadraticCostFunction<md>>());
+		network.Train(data);
+	}
+	
+	TEST_F(NetworkTests, TrivialNetworkSmallVarianceWeightsRegularizedCrossEntropyConsistency)
+	{
+		auto trainingData = GetData<md>("Training", 784, 10, 50000);
+		auto validationData = GetData<md>("Validation", 784, 10, 10000);
+		auto testData = GetData<md>("Test", 784, 10, 10000);
+		
+		nn::Vector<MathDomain::Int> cache1(10000u);
+		nn::Vector<MathDomain::Int> cache2(10000u);
+		nn::Vector<MathDomain::Int> cache3(10000u);
+		size_t currentIter = 0;
+		
+		std::vector<int> expectedScores = { 9474, 9424, 9485 };
+		std::function<void(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
+		{
+			assert(modelOutput.nCols() == cache1.size());
+			modelOutput.ColumnWiseArgAbsMaximum(cache1);
+			
+			assert(expectedOutput.nCols() == cache2.size());
+			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
+			
+			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			
+			ASSERT_EQ(expectedScores[currentIter++], score);
+		};
+		
+		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
+		data.debugLevel = 2;
+		data.epochCalculation = 1;
+		
+		data.hyperParameters.nEpochs = 3;
+		data.hyperParameters.miniBacthSize = 10;
+		data.hyperParameters.learningRate = 0.5;
+		data.hyperParameters.lambda = 0.1;
+		
+		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
+		nn::Network<md> network(networkTopology, nn::SmallVarianceRandomBiasWeightInitializer<md>(), std::make_unique<nn::CrossEntropyCostFunction<md>>());
 		network.Train(data);
 	}
 }

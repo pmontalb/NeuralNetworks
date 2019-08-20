@@ -2,6 +2,8 @@
 
 #include <NeuralNetworks/MiniBatchData.h>
 #include <NeuralNetworks/Stopwatch.h>
+#include <NeuralNetworks/Initializers/IBiasWeightInitializer.h>
+#include <NeuralNetworks/CostFunctions/ICostFunction.h>
 
 namespace nn
 {
@@ -12,6 +14,9 @@ namespace nn
 		using vec = Vector<mathDomain>;
 	public:
 		explicit Network(const std::vector<size_t>& nNeurons) noexcept;
+		Network(const std::vector<size_t>& nNeurons,
+				IBiasWeightInitializer<mathDomain>&& initializer,
+				std::unique_ptr<ICostFunction<mathDomain>>&& costFunction) noexcept;
 		
 		void Evaluate(mat& out, const NetworkTrainingData<mathDomain>& networkTrainingData, std::vector<vec>& cache = {}) const noexcept;
 		
@@ -31,6 +36,7 @@ namespace nn
 		const std::vector<size_t>& _nNeurons;
 		std::vector<vec> _biases {};
 		std::vector<mat> _weights {};
+		const std::unique_ptr<ICostFunction<mathDomain>> _costFunction;
 		
 		std::vector<vec> _cache {};
 	};

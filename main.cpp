@@ -58,7 +58,7 @@ int main()
 	data.hyperParameters.learningRate = 3.0;
 	
 	auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
-	nn::Network<md> network(networkTopology);
+	nn::Network<md> network(networkTopology, nn::SmallVarianceRandomBiasWeightInitializer<md>(), std::make_unique<nn::CrossEntropyCostFunction<md>>());
 	network.Train(data);
 	return 0;
 }
