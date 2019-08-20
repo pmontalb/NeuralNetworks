@@ -57,7 +57,7 @@ int main()
 	data.hyperParameters.miniBacthSize = 10;
 	data.hyperParameters.learningRate = 3.0;
 	
-	auto networkTopology = std::vector<size_t>{{ 784, 100, 10 }};
+	auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
 	nn::Network<md> network(networkTopology);
 	network.Train(data);
 	return 0;

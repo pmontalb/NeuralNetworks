@@ -48,8 +48,9 @@ add_library(
         NeuralNetworks
         NeuralNetworks/NeuralNetworksManager.cpp
 )
-target_include_directories(NeuralNetworks PRIVATE ./NeuralNetworks)
-target_include_directories(NeuralNetworks PRIVATE ./NeuralNetworkKernels)
+target_include_directories(NeuralNetworks PUBLIC ./)
+target_include_directories(NeuralNetworks PUBLIC ./NeuralNetworks)
+target_include_directories(NeuralNetworks PUBLIC ./NeuralNetworkKernels)
 target_include_directories(NeuralNetworks PRIVATE ../CudaLightKernels)
 target_include_directories(NeuralNetworks PRIVATE ../CudaLight)
 target_compile_options(NeuralNetworks PRIVATE ${WARNINGS} ${DEBUG_FLAGS})
@@ -64,3 +65,15 @@ target_include_directories(DigitsRecognition PRIVATE .)
 target_compile_options(DigitsRecognition PRIVATE ${WARNINGS} ${DEBUG_FLAGS})
 target_link_libraries(DigitsRecognition NeuralNetworks)
 
+find_package(GTest REQUIRED)
+add_executable(
+        NnUnitTests
+        UnitTests/main.cpp
+        UnitTests/DataUnitTests.cpp
+        UnitTests/NetworkUnitTests.cpp
+)
+target_include_directories(NnUnitTests PRIVATE NeuralNetworks)
+target_include_directories(NnUnitTests PRIVATE ../)
+target_include_directories(NnUnitTests PRIVATE ${GTEST_INCLUDE_DIR})
+target_compile_options(NnUnitTests PRIVATE ${DEBUG_FLAGS})
+target_link_libraries(NnUnitTests gtest pthread NeuralNetworks)
