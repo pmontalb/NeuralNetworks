@@ -2,4 +2,4 @@
 cmake-*/
 *.swp
 
-Data/
+Data/*npy
