@@ -13,7 +13,7 @@ namespace nn
 		void Set(typename IBiasWeightInitializer<mathDomain>::Weight& weight) const noexcept override
 		{
 			weight.RandomGaussian();
-		};
+		}
 		
 		void Set(typename IBiasWeightInitializer<mathDomain>::Bias& bias) const noexcept final
 		{

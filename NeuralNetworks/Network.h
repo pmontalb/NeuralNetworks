@@ -4,6 +4,7 @@
 #include <NeuralNetworks/Stopwatch.h>
 #include <NeuralNetworks/Initializers/IBiasWeightInitializer.h>
 #include <NeuralNetworks/CostFunctions/ICostFunction.h>
+#include <NeuralNetworks/Shufflers/IShuffler.h>
 
 namespace nn
 {
@@ -16,7 +17,8 @@ namespace nn
 		explicit Network(const std::vector<size_t>& nNeurons) noexcept;
 		Network(const std::vector<size_t>& nNeurons,
 				IBiasWeightInitializer<mathDomain>&& initializer,
-				std::unique_ptr<ICostFunction<mathDomain>>&& costFunction) noexcept;
+				std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
+				std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept;
 		
 		void Evaluate(mat& out, const NetworkTrainingData<mathDomain>& networkTrainingData, std::vector<vec>& cache = {}) const noexcept;
 		
@@ -37,6 +39,7 @@ namespace nn
 		std::vector<vec> _biases {};
 		std::vector<mat> _weights {};
 		const std::unique_ptr<ICostFunction<mathDomain>> _costFunction;
+		const std::unique_ptr<IShuffler<mathDomain>> _miniBatchShuffler;
 		
 		std::vector<vec> _cache {};
 	};

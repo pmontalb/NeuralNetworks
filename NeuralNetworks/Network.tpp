@@ -1,27 +1,32 @@
 
 #include <NeuralNetworks/Initializers/SmallVarianceRandomBiasWeightInitializer.h>
 #include <NeuralNetworks/CostFunctions/CrossEntropyCostFunction.h>
+#include <NeuralNetworks/Shufflers/RandomShuffler.h>
 
 namespace nn
 {
 	template<MathDomain mathDomain>
 	Network<mathDomain>::Network(const std::vector<size_t>& nNeurons) noexcept
-		: Network(nNeurons, SmallVarianceRandomBiasWeightInitializer<mathDomain>(), std::make_unique<CrossEntropyCostFunction<mathDomain>>())
+		: Network(nNeurons,
+				  SmallVarianceRandomBiasWeightInitializer<mathDomain>(),
+				  std::make_unique<CrossEntropyCostFunction<mathDomain>>(),
+				  std::make_unique<RandomShuffler<mathDomain>>())
 	{
 	}
 	
 	template<MathDomain mathDomain>
 	Network<mathDomain>::Network(const std::vector<size_t>& nNeurons,
 								 IBiasWeightInitializer<mathDomain>&& initializer,
-								 std::unique_ptr<ICostFunction<mathDomain>>&& costFunction) noexcept
-			: _nNeurons(nNeurons), _costFunction(std::move(costFunction))
+								 std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
+								 std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept
+			: _nNeurons(nNeurons), _costFunction(std::move(costFunction)), _miniBatchShuffler(std::move(miniBatchShuffler))
 	{
 		for (size_t l = 0; l < GetNumberOfLayers(); ++l)
 		{
-			_biases.emplace_back(vec(_nNeurons[l + 1], 0.0));
+			_biases.emplace_back(vec(static_cast<unsigned>(_nNeurons[l + 1]), 0.0));
 			initializer.Set(_biases.back());
 			
-			_weights.emplace_back(mat(_nNeurons[l + 1], _nNeurons[l], 0.0));
+			_weights.emplace_back(mat(static_cast<unsigned>(_nNeurons[l + 1]), static_cast<unsigned>(_nNeurons[l]), 0.0));
 			initializer.Set(_weights.back());
 		}
 	}
@@ -34,7 +39,7 @@ namespace nn
 		if (cache.empty())
 		{
 			for (size_t l = 0; l < GetNumberOfLayers(); ++l)
-				cache.emplace_back(vec(_nNeurons[l + 1], 0.0));
+				cache.emplace_back(vec(static_cast<unsigned>(_nNeurons[l + 1]), 0.0));
 		}
 		
 		for (size_t col = 0; col < out.nCols(); ++col)
@@ -78,7 +83,7 @@ namespace nn
 			
 			sw.Start();
 			
-			cl::RandomShuffleColumnsPair(data.networkTrainingData.trainingData.input, data.networkTrainingData.trainingData.expectedOutput);
+			_miniBatchShuffler->Shuffle(data.networkTrainingData.trainingData.input, data.networkTrainingData.trainingData.expectedOutput);
 			
 			data.endIndex = 0;
 			for (size_t n = 0; n < nMiniBatchIterations; ++n)
@@ -183,7 +188,7 @@ namespace nn
 		Stopwatch sw(true);
 		
 		const double averageLearningRate = data.networkTrainingData.hyperParameters.GetAverageLearningRate();
-		const double regularizationFactor = 1.0 - (data.networkTrainingData.hyperParameters.learningRate * data.networkTrainingData.hyperParameters.lambda) / data.networkTrainingData.trainingData.GetLength();
+		const double regularizationFactor = 1.0 - (data.networkTrainingData.hyperParameters.learningRate * data.networkTrainingData.hyperParameters.lambda) / data.networkTrainingData.trainingData.GetNumberOfSamples();
 		for (size_t i = 0; i < _biases.size(); ++i)
 			_biases[i].AddEqual(data.biasGradient[i], -averageLearningRate);
 

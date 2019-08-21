@@ -71,7 +71,10 @@ namespace nnt
 		data.hyperParameters.lambda = 0.0;
 		
 		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
-		nn::Network<md> network(networkTopology, nn::RandomBiasWeightInitializer<md>(), std::make_unique<nn::QuadraticCostFunction<md>>());
+		nn::Network<md> network(networkTopology,
+				                nn::RandomBiasWeightInitializer<md>(),
+				                std::make_unique<nn::QuadraticCostFunction<md>>(),
+				                std::make_unique<nn::RandomShuffler<md>>());
 		network.Train(data);
 	}
 	
@@ -110,7 +113,10 @@ namespace nnt
 		data.hyperParameters.lambda = 0.0;
 		
 		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
-		nn::Network<md> network(networkTopology, nn::SmallVarianceRandomBiasWeightInitializer<md>(), std::make_unique<nn::QuadraticCostFunction<md>>());
+		nn::Network<md> network(networkTopology,
+				                nn::SmallVarianceRandomBiasWeightInitializer<md>(),
+				                std::make_unique<nn::QuadraticCostFunction<md>>(),
+				                std::make_unique<nn::RandomShuffler<md>>());
 		network.Train(data);
 	}
 	
@@ -149,7 +155,10 @@ namespace nnt
 		data.hyperParameters.lambda = 0.1;
 		
 		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
-		nn::Network<md> network(networkTopology, nn::SmallVarianceRandomBiasWeightInitializer<md>(), std::make_unique<nn::QuadraticCostFunction<md>>());
+		nn::Network<md> network(networkTopology,
+								nn::SmallVarianceRandomBiasWeightInitializer<md>(),
+								        std::make_unique<nn::QuadraticCostFunction<md>>(),
+								        std::make_unique<nn::RandomShuffler<md>>());
 		network.Train(data);
 	}
 	
@@ -188,7 +197,10 @@ namespace nnt
 		data.hyperParameters.lambda = 0.1;
 		
 		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
-		nn::Network<md> network(networkTopology, nn::SmallVarianceRandomBiasWeightInitializer<md>(), std::make_unique<nn::CrossEntropyCostFunction<md>>());
+		nn::Network<md> network(networkTopology,
+				                nn::SmallVarianceRandomBiasWeightInitializer<md>(),
+				                std::make_unique<nn::CrossEntropyCostFunction<md>>(),
+				                std::make_unique<nn::RandomShuffler<md>>());
 		network.Train(data);
 	}
 }

@@ -4,23 +4,26 @@
 #include <Types.h>
 
 #include <NeuralNetworks/Network.h>
+#include <NeuralNetworks/Shufflers/IdentityShuffler.h>
+#include <NeuralNetworks/Initializers/ZeroBiasWeightInitializer.h>
 
 #include <map>
 
 static constexpr MathDomain md = MathDomain::Double;
-std::map<MathDomain, std::string> extension = { {MathDomain::Float, "Single"},
-												{MathDomain::Double, "Double"}};
 
 template<MathDomain T>
 nn::TrainingData<T> GetData(const std::string& fileType, const size_t nRowsInput, const size_t nRowsOutput, const size_t nCols)
 {
+	const std::map<MathDomain, std::string> extension = { {MathDomain::Float, "Single"},
+													      {MathDomain::Double, "Double"}};
+	
 	const std::string path = getenv("DATA_PATH");
 	
-	auto input = cl::MatrixFromBinaryFile<MemorySpace::Device, T>(path + "/Data/" + fileType + "Input" + extension[md] + ".npy", true);
+	auto input = cl::MatrixFromBinaryFile<MemorySpace::Device, T>(path + "/Data/" + fileType + "Input" + extension.at(md) + ".npy", true);
 	if (input.nRows() != nRowsInput) std::abort();
 	if (input.nCols() != nCols) std::abort();
 	
-	auto output = cl::MatrixFromBinaryFile<MemorySpace::Device, T>(path + "/Data/" + fileType + "Output" + extension[md] + ".npy", true);
+	auto output = cl::MatrixFromBinaryFile<MemorySpace::Device, T>(path + "/Data/" + fileType + "Output" + extension.at(md) + ".npy", true);
 	if (output.nRows() != nRowsOutput) std::abort();
 	if (output.nCols() != nCols) std::abort();
 	
@@ -55,10 +58,14 @@ int main()
 	
 	data.hyperParameters.nEpochs = 30;
 	data.hyperParameters.miniBacthSize = 10;
-	data.hyperParameters.learningRate = 3.0;
+	data.hyperParameters.learningRate = 0.1;
+	data.hyperParameters.lambda = 5.0;
 	
 	auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
-	nn::Network<md> network(networkTopology, nn::SmallVarianceRandomBiasWeightInitializer<md>(), std::make_unique<nn::CrossEntropyCostFunction<md>>());
+	nn::Network<md> network(networkTopology,
+			                nn::ZeroBiasWeightInitializer<md>(),
+			                std::make_unique<nn::CrossEntropyCostFunction<md>>(),
+			                std::make_unique<nn::IdentityShuffler<md>>());
 	network.Train(data);
 	return 0;
 }

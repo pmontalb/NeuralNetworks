@@ -14,6 +14,6 @@ namespace nn
 		{
 			RandomBiasWeightInitializer<mathDomain>::Set(weight);
 			weight.Scale(1.0 / std::sqrt(weight.nCols()));
-		};
+		}
 	};
 }

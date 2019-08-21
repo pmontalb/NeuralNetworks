@@ -13,7 +13,7 @@ namespace nn
 		void Set(typename IBiasWeightInitializer<mathDomain>::Weight& weight) const noexcept override
 		{
 			weight.Set(0.0);
-		};
+		}
 		
 		void Set(typename IBiasWeightInitializer<mathDomain>::Bias& bias) const noexcept override
 		{

@@ -15,7 +15,7 @@ namespace nn
 		
 		void EvaluateDerivative(typename ICostFunction<mathDomain>::Vector& expected,
 								const typename ICostFunction<mathDomain>::Vector& actual,
-								const typename ICostFunction<mathDomain>::Vector& activationDerivative) const noexcept override
+								const typename ICostFunction<mathDomain>::Vector&) const noexcept override
 		{
 			expected -= actual;
 		}
