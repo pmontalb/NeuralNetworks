@@ -32,7 +32,7 @@ namespace nn
 	}
 	
 	template<MathDomain mathDomain>
-	void Network<mathDomain>::Evaluate(mat& out, const NetworkTrainingData<mathDomain>& networkTrainingData, std::vector<vec>& cache) const noexcept
+	void Network<mathDomain>::Evaluate(mat& out, const mat& in, const int debugLevel, std::vector<vec>& cache) const noexcept
 	{
 		Stopwatch sw(true);
 		
@@ -45,7 +45,7 @@ namespace nn
 		for (size_t col = 0; col < out.nCols(); ++col)
 		{
 			// sigmoid(w * cache + b)
-			_weights[0].Dot(cache[0], *networkTrainingData.testData.input.columns[col]);
+			_weights[0].Dot(cache[0], *in.columns[col]);
 			cache[0].AddEqual(_biases[0]);
 			nn::detail::Sigmoid(cache[0].GetBuffer(), cache[0].GetBuffer());
 			
@@ -62,7 +62,7 @@ namespace nn
 		}
 		
 		sw.Stop();
-		if (networkTrainingData.debugLevel > 1)
+		if (debugLevel > 1)
 			std::cout << "\tEvaluation completed in " << sw.GetMilliSeconds() << " ms" << std::endl;
 	}
 	
@@ -72,9 +72,39 @@ namespace nn
 		Stopwatch sw;
 		
 		MiniBatchData<mathDomain> data(networkTrainingData, _biases, _weights);
-		mat modelOutput(networkTrainingData.testData.expectedOutput.nRows(), networkTrainingData.testData.expectedOutput.nCols());
-		
+		std::unordered_map<size_t, mat> modelOutputCache;
 		std::vector<vec> evaluatorCache {};
+		static constexpr size_t nEvaluationDimensions = { 3 };
+		std::array<double, nEvaluationDimensions> bestAccuracies = {{ 0.0 }};
+		std::array<size_t, nEvaluationDimensions> nEpochsWithNoImprovements = {{ 0 }};
+		const auto evaluator = [&](const auto i, const auto epoch, const auto& networkData, auto accuracyIndex)
+		{
+			if (epoch > 0 && (i + 1) % epoch == 0)
+			{
+				const auto modelOutput = modelOutputCache.insert({ networkData.expectedOutput.nCols(), mat(networkData.expectedOutput.nRows(), networkData.expectedOutput.nCols()) }).first;
+				Evaluate(modelOutput->second, networkData.input, networkTrainingData.debugLevel, evaluatorCache);
+				const double accuracy = networkTrainingData.evaluator(modelOutput->second, networkData.expectedOutput);
+				
+				if (accuracy > bestAccuracies[accuracyIndex])
+				{
+					std::cout << "\t***\t\t*NEW best accuracy (" << bestAccuracies[accuracyIndex] << " -> " << accuracy << ") ***" << std::endl;
+					bestAccuracies[accuracyIndex] = accuracy;
+					nEpochsWithNoImprovements[accuracyIndex] = 0;
+				}
+				else
+				{
+					++nEpochsWithNoImprovements[accuracyIndex];
+					if (nEpochsWithNoImprovements[accuracyIndex] > networkTrainingData.nMaxEpochsWithNoScoreImprovements)
+					{
+						std::cout << "\t***\tEarly stop due to " << nEpochsWithNoImprovements[accuracyIndex] << " epochs with no improvements" << std::endl;
+						return false;
+					}
+				}
+			}
+			
+			return true;
+		};
+		
 		size_t nMiniBatchIterations = networkTrainingData.trainingData.GetNumberOfSamples() / networkTrainingData.hyperParameters.miniBacthSize;
 		for (size_t i = 0; i < networkTrainingData.hyperParameters.nEpochs; ++i)
 		{
@@ -94,11 +124,12 @@ namespace nn
 				UpdateMiniBatch(data);
 			}
 			
-			if ((i + 1) % networkTrainingData.epochCalculation == 0)
-			{
-				Evaluate(modelOutput, networkTrainingData, evaluatorCache);
-				networkTrainingData.evaluator(modelOutput, networkTrainingData.testData.expectedOutput);
-			}
+			if (!evaluator(i, networkTrainingData.epochCalculationTestData, networkTrainingData.testData, 0u))
+				return;
+			if (!evaluator(i, networkTrainingData.epochCalculationValidationData, networkTrainingData.validationData, 1u))
+				return;
+			if (!evaluator(i, networkTrainingData.epochCalculationTrainingData, networkTrainingData.trainingData, 2u))
+				return;
 			
 			sw.Stop();
 			if (networkTrainingData.debugLevel > 0)

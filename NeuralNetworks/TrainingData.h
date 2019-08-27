@@ -52,22 +52,33 @@ namespace nn
 		TrainingData<mathDomain>& testData;
 		TrainingData<mathDomain>& validationData;
 		
-		const std::function<void(Matrix<mathDomain>&, const Matrix<mathDomain>&)>& evaluator;
+		const std::function<double(Matrix<mathDomain>&, const Matrix<mathDomain>&)>& evaluator;
 		
 		HyperParameters hyperParameters {};
 		
 		// define every how many epochs to evaluate the network. If it's 0, it evaluates only at the end
-		size_t epochCalculation = 0;
+		size_t epochCalculationTestData = 0;
+		size_t epochCalculationValidationData = 0;
+		size_t epochCalculationTrainingData = 0;
+		
+		size_t nMaxEpochsWithNoScoreImprovements = 0;
+		
 		int debugLevel = 0;
 		
 		NetworkTrainingData(TrainingData<mathDomain>& trainingData_, TrainingData<mathDomain>& testData_,
 		                    TrainingData<mathDomain>& validationData_,
-		                    const std::function<void(Matrix<mathDomain>&, const Matrix<mathDomain>&)>& evaluator_,
-		                    HyperParameters hyperParameters_ = HyperParameters(), size_t epochCalculation_ = 0,
+		                    const std::function<double(Matrix<mathDomain>&, const Matrix<mathDomain>&)>& evaluator_,
+		                    HyperParameters hyperParameters_ = HyperParameters(),
+		                    size_t epochCalculationTestData_ = 0,
+		                    size_t epochCalculationValidationData_ = 0,
+		                    size_t epochCalculationTrainingData_ = 0,
 		                    int debugLevel_ = 0) : trainingData(trainingData_), testData(testData_),
 		                                           validationData(validationData_), evaluator(evaluator_),
 		                                           hyperParameters(hyperParameters_),
-		                                           epochCalculation(epochCalculation_), debugLevel(debugLevel_)
+		                                           epochCalculationTestData(epochCalculationTestData_),
+		                                           epochCalculationValidationData(epochCalculationValidationData_),
+		                                           epochCalculationTrainingData(epochCalculationTrainingData_),
+		                                           debugLevel(debugLevel_)
 		{
 		}
 	};

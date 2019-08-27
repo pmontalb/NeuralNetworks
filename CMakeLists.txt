@@ -30,7 +30,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(WARNINGS -Weverything -Werror
             -Wno-c++98-compat -Wno-c++98-compat-pedantic
             -Wno-reserved-id-macro -Wno-switch-enum -Wno-unknown-pragmas -Wno-disabled-macro-expansion
-            -Wno-unneeded-internal-declaration -Wno-weak-vtables -Wno-unused-function -Wno-padded -Wno-unused-macros)
+            -Wno-unneeded-internal-declaration -Wno-weak-vtables -Wno-unused-function -Wno-padded -Wno-unused-macros
+            -Wno-exit-time-destructors)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(WARNINGS -Wall -Wextra -Werror -Wno-unknown-pragmas -Wno-unused-function)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")

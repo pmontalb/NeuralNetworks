@@ -48,7 +48,7 @@ namespace nnt
 		size_t currentIter = 0;
 		
 		std::vector<int> expectedScores = { 9067, 9204, 9241 };
-		std::function<void(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
+		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 		{
 			assert(modelOutput.nCols() == cache1.size());
 			modelOutput.ColumnWiseArgAbsMaximum(cache1);
@@ -58,12 +58,15 @@ namespace nnt
 			
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
 			
-			ASSERT_EQ(expectedScores[currentIter++], score);
+			if (expectedScores[currentIter++] != score)
+				throw std::runtime_error("");
+			
+			return static_cast<double>(score);
 		};
 		
 		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
 		data.debugLevel = 2;
-		data.epochCalculation = 1;
+		data.epochCalculationTestData = 1;
 		
 		data.hyperParameters.nEpochs = 3;
 		data.hyperParameters.miniBacthSize = 10;
@@ -75,7 +78,8 @@ namespace nnt
 				                nn::RandomBiasWeightInitializer<md>(),
 				                std::make_unique<nn::QuadraticCostFunction<md>>(),
 				                std::make_unique<nn::RandomShuffler<md>>());
-		network.Train(data);
+		
+		ASSERT_NO_THROW(network.Train(data));
 	}
 	
 	TEST_F(NetworkTests, TrivialNetworkSmallVarianceWeightsConsistency)
@@ -90,7 +94,7 @@ namespace nnt
 		size_t currentIter = 0;
 		
 		std::vector<int> expectedScores = { 9393, 9393, 9482 };
-		std::function<void(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
+		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 		{
 			assert(modelOutput.nCols() == cache1.size());
 			modelOutput.ColumnWiseArgAbsMaximum(cache1);
@@ -100,12 +104,16 @@ namespace nnt
 			
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
 			
-			ASSERT_EQ(expectedScores[currentIter++], score);
+			if (expectedScores[currentIter++] != score)
+				throw std::runtime_error("");
+			
+			return static_cast<double>(score);
 		};
 		
 		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
 		data.debugLevel = 2;
-		data.epochCalculation = 1;
+		data.epochCalculationTestData = 1;
+		data.nMaxEpochsWithNoScoreImprovements = 3;
 		
 		data.hyperParameters.nEpochs = 3;
 		data.hyperParameters.miniBacthSize = 10;
@@ -117,7 +125,7 @@ namespace nnt
 				                nn::SmallVarianceRandomBiasWeightInitializer<md>(),
 				                std::make_unique<nn::QuadraticCostFunction<md>>(),
 				                std::make_unique<nn::RandomShuffler<md>>());
-		network.Train(data);
+		ASSERT_NO_THROW(network.Train(data));
 	}
 	
 	TEST_F(NetworkTests, TrivialNetworkSmallVarianceWeightsRegularizedConsistency)
@@ -131,8 +139,8 @@ namespace nnt
 		nn::Vector<MathDomain::Int> cache3(10000u);
 		size_t currentIter = 0;
 		
-		std::vector<int> expectedScores = { 9173, 9276, 9371 };
-		std::function<void(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
+		std::vector<int> expectedScores = { 9213, 9376, 9451 };
+		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 		{
 			assert(modelOutput.nCols() == cache1.size());
 			modelOutput.ColumnWiseArgAbsMaximum(cache1);
@@ -141,13 +149,16 @@ namespace nnt
 			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
 			
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			if (expectedScores[currentIter++] != score)
+				throw std::runtime_error(std::to_string(score));
 			
-			ASSERT_EQ(expectedScores[currentIter++], score);
+			return static_cast<double>(score);
 		};
 		
 		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
 		data.debugLevel = 2;
-		data.epochCalculation = 1;
+		data.epochCalculationTestData = 1;
+		data.nMaxEpochsWithNoScoreImprovements = 3;
 		
 		data.hyperParameters.nEpochs = 3;
 		data.hyperParameters.miniBacthSize = 10;
@@ -159,7 +170,7 @@ namespace nnt
 								nn::SmallVarianceRandomBiasWeightInitializer<md>(),
 								        std::make_unique<nn::QuadraticCostFunction<md>>(),
 								        std::make_unique<nn::RandomShuffler<md>>());
-		network.Train(data);
+		ASSERT_NO_THROW(network.Train(data));
 	}
 	
 	TEST_F(NetworkTests, TrivialNetworkSmallVarianceWeightsRegularizedCrossEntropyConsistency)
@@ -173,8 +184,8 @@ namespace nnt
 		nn::Vector<MathDomain::Int> cache3(10000u);
 		size_t currentIter = 0;
 		
-		std::vector<int> expectedScores = { 9474, 9424, 9485 };
-		std::function<void(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
+		std::vector<int> expectedScores = { 9416, 9448, 9516 };
+		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 		{
 			assert(modelOutput.nCols() == cache1.size());
 			modelOutput.ColumnWiseArgAbsMaximum(cache1);
@@ -184,12 +195,16 @@ namespace nnt
 			
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
 			
-			ASSERT_EQ(expectedScores[currentIter++], score);
+			if (expectedScores[currentIter++] != score)
+				throw std::runtime_error(std::to_string(score));
+			
+			return static_cast<double>(score);
 		};
 		
 		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
 		data.debugLevel = 2;
-		data.epochCalculation = 1;
+		data.epochCalculationTestData = 1;
+		data.nMaxEpochsWithNoScoreImprovements = 3;
 		
 		data.hyperParameters.nEpochs = 3;
 		data.hyperParameters.miniBacthSize = 10;
@@ -201,6 +216,6 @@ namespace nnt
 				                nn::SmallVarianceRandomBiasWeightInitializer<md>(),
 				                std::make_unique<nn::CrossEntropyCostFunction<md>>(),
 				                std::make_unique<nn::RandomShuffler<md>>());
-		network.Train(data);
+		ASSERT_NO_THROW(network.Train(data));
 	}
 }

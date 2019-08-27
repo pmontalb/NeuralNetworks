@@ -20,7 +20,7 @@ namespace nn
 				std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
 				std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept;
 		
-		void Evaluate(mat& out, const NetworkTrainingData<mathDomain>& networkTrainingData, std::vector<vec>& cache = {}) const noexcept;
+		void Evaluate(mat& out, const mat& in, const int debugLevel = 0, std::vector<vec>& cache = {}) const noexcept;
 		
 		void Train(const NetworkTrainingData<mathDomain>& networkTrainingData) noexcept;
 		
