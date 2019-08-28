@@ -142,6 +142,7 @@
 
 __CREATE_FUNCTION_2_ARG(Sigmoid, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
 __CREATE_FUNCTION_2_ARG(SigmoidPrime, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunction, CudaKernelExceptionFactory, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
 
 #pragma region Undef macros
 

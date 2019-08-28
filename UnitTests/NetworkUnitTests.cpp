@@ -66,7 +66,7 @@ namespace nnt
 		
 		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
 		data.debugLevel = 2;
-		data.epochCalculationTestData = 1;
+		data.epochCalculationAccuracyTestData = 1;
 		
 		data.hyperParameters.nEpochs = 3;
 		data.hyperParameters.miniBacthSize = 10;
@@ -112,7 +112,7 @@ namespace nnt
 		
 		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
 		data.debugLevel = 2;
-		data.epochCalculationTestData = 1;
+		data.epochCalculationAccuracyTestData = 1;
 		data.nMaxEpochsWithNoScoreImprovements = 3;
 		
 		data.hyperParameters.nEpochs = 3;
@@ -157,7 +157,7 @@ namespace nnt
 		
 		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
 		data.debugLevel = 2;
-		data.epochCalculationTestData = 1;
+		data.epochCalculationAccuracyTestData = 1;
 		data.nMaxEpochsWithNoScoreImprovements = 3;
 		
 		data.hyperParameters.nEpochs = 3;
@@ -203,7 +203,7 @@ namespace nnt
 		
 		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
 		data.debugLevel = 2;
-		data.epochCalculationTestData = 1;
+		data.epochCalculationAccuracyTestData = 1;
 		data.nMaxEpochsWithNoScoreImprovements = 3;
 		
 		data.hyperParameters.nEpochs = 3;

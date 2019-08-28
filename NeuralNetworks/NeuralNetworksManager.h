@@ -89,6 +89,7 @@
 
 __CREATE_FUNCTION_2_ARG(Sigmoid, MemoryBuffer, z, MemoryBuffer, x);
 __CREATE_FUNCTION_2_ARG(SigmoidPrime, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunction, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
 
 #pragma region Undef macros
 

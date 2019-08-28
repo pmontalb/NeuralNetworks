@@ -77,7 +77,7 @@ namespace nn
 		static constexpr size_t nEvaluationDimensions = { 3 };
 		std::array<double, nEvaluationDimensions> bestAccuracies = {{ 0.0 }};
 		std::array<size_t, nEvaluationDimensions> nEpochsWithNoImprovements = {{ 0 }};
-		const auto evaluator = [&](const auto i, const auto epoch, const auto& networkData, auto accuracyIndex)
+		const auto accuracyEvaluator = [&](const auto i, const auto epoch, const auto& networkData, auto accuracyIndex)
 		{
 			if (epoch > 0 && (i + 1) % epoch == 0)
 			{
@@ -105,6 +105,18 @@ namespace nn
 			return true;
 		};
 		
+		const auto totalCostEvaluator = [&](const auto i, const auto epoch, const auto& networkData)
+		{
+			if (epoch > 0 && (i + 1) % epoch == 0)
+			{
+				const auto modelOutput = modelOutputCache.insert({ networkData.expectedOutput.nCols(), mat(networkData.expectedOutput.nRows(), networkData.expectedOutput.nCols()) }).first;
+				Evaluate(modelOutput->second, networkData.input, networkTrainingData.debugLevel, evaluatorCache);
+				
+				const double totalCost =  _costFunction->Evaluate(modelOutput->second, networkData.expectedOutput, _weights, networkTrainingData.hyperParameters.lambda);
+				std::cout << "\t###\tTotal Cost = " << totalCost << " ###" << std::endl;
+			}
+		};
+		
 		size_t nMiniBatchIterations = networkTrainingData.trainingData.GetNumberOfSamples() / networkTrainingData.hyperParameters.miniBacthSize;
 		for (size_t i = 0; i < networkTrainingData.hyperParameters.nEpochs; ++i)
 		{
@@ -124,12 +136,17 @@ namespace nn
 				UpdateMiniBatch(data);
 			}
 			
-			if (!evaluator(i, networkTrainingData.epochCalculationTestData, networkTrainingData.testData, 0u))
+			// accuracy and total cost -> mainly debug stuff!
+			if (!accuracyEvaluator(i, networkTrainingData.epochCalculationAccuracyTestData, networkTrainingData.testData, 0u))
 				return;
-			if (!evaluator(i, networkTrainingData.epochCalculationValidationData, networkTrainingData.validationData, 1u))
+			if (!accuracyEvaluator(i, networkTrainingData.epochCalculationAccuracyValidationData, networkTrainingData.validationData, 1u))
 				return;
-			if (!evaluator(i, networkTrainingData.epochCalculationTrainingData, networkTrainingData.trainingData, 2u))
+			if (!accuracyEvaluator(i, networkTrainingData.epochCalculationAccuracyTrainingData, networkTrainingData.trainingData, 2u))
 				return;
+			totalCostEvaluator(i, networkTrainingData.epochCalculationTotalCostTestData, networkTrainingData.testData);
+			totalCostEvaluator(i, networkTrainingData.epochCalculationTotalCostValidationData, networkTrainingData.validationData);
+			totalCostEvaluator(i, networkTrainingData.epochCalculationTotalCostTrainingData, networkTrainingData.trainingData);
+			//
 			
 			sw.Stop();
 			if (networkTrainingData.debugLevel > 0)

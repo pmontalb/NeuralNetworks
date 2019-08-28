@@ -8,6 +8,7 @@
 #include <NeuralNetworks/Initializers/ZeroBiasWeightInitializer.h>
 
 #include <map>
+#include <NeuralNetworks/CostFunctions/QuadraticCostFunction.h>
 
 static constexpr MathDomain md = MathDomain::Double;
 
@@ -60,16 +61,19 @@ int main()
 		
 		int score = iter->second.cache1.CountEquals(iter->second.cache2, iter->second.cache3.GetBuffer());
 		
-		std::cout << "\t***\tScore = " << score << " [" << modelOutput.nCols() << "] ***" << std::endl;
+		std::cout << "\t***\tScore = " << score << " [" << modelOutput.nCols() << "] = " << static_cast<double>(100 * score) / modelOutput.nCols() << "% ***" << std::endl;
 		
 		return static_cast<double>(score);
 	};
 	
 	nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
 	data.debugLevel = 2;
-	data.epochCalculationTestData = 0;
-	data.epochCalculationValidationData = 0;
-	data.epochCalculationTrainingData = 1;
+	data.epochCalculationAccuracyTestData = 1;
+	data.epochCalculationAccuracyValidationData = 0;
+	data.epochCalculationAccuracyTrainingData = 0;
+	data.epochCalculationTotalCostTestData = 1;
+	data.epochCalculationTotalCostValidationData = 0;
+	data.epochCalculationTotalCostTrainingData = 0;
 	
 	data.hyperParameters.nEpochs = 30;
 	data.hyperParameters.miniBacthSize = 10;

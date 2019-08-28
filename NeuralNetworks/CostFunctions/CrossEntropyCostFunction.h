@@ -1,16 +1,20 @@
 #pragma once
 
+#include <NeuralNetworks/CostFunctions/CostFunction.h>
+
 namespace nn
 {
 	template<MathDomain mathDomain>
-	class CrossEntropyCostFunction final: public ICostFunction<mathDomain>
+	class CrossEntropyCostFunction final: public CostFunction<mathDomain>
 	{
 	public:
-		using ICostFunction<mathDomain>::ICostFunction;
+		using CostFunction<mathDomain>::CostFunction;
 		
-		void Evaluate(typename ICostFunction<mathDomain>::Vector&, const typename ICostFunction<mathDomain>::Vector&) const noexcept override
+		double EvaluateWorker(typename ICostFunction<mathDomain>::Matrix& modelOutput, const typename ICostFunction<mathDomain>::Matrix& expectedOutput) const noexcept override
 		{
-			// TODO: write cross entropy kernel
+			double cost = 0.0;
+			nn::detail::CrossEntropyCostFunction(cost, modelOutput.GetBuffer(), expectedOutput.GetBuffer());
+			return cost;
 		}
 		
 		void EvaluateDerivative(typename ICostFunction<mathDomain>::Vector& expected,

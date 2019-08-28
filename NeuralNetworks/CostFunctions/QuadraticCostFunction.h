@@ -1,18 +1,22 @@
 #pragma once
 
+#include <NeuralNetworks/CostFunctions/CostFunction.h>
+
 namespace nn
 {
 	template<MathDomain mathDomain>
-	class QuadraticCostFunction final: public ICostFunction<mathDomain>
+	class QuadraticCostFunction final: public CostFunction<mathDomain>
 	{
 	public:
-		using ICostFunction<mathDomain>::ICostFunction;
+		using CostFunction<mathDomain>::CostFunction;
 		
-		void Evaluate(typename ICostFunction<mathDomain>::Vector& expected, const typename ICostFunction<mathDomain>::Vector& actual) const noexcept override
+		double EvaluateWorker(typename ICostFunction<mathDomain>::Matrix& expected, const typename ICostFunction<mathDomain>::Matrix& actual) const noexcept override
 		{
 			expected -= actual;
-			// TODO: sum squares
-			expected.Scale(0.5);
+			double norm2 = expected.EuclideanNorm();
+			norm2 *= 0.5 * norm2;
+
+			return norm2;
 		}
 		
 		void EvaluateDerivative(typename ICostFunction<mathDomain>::Vector& expected,

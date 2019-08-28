@@ -57,9 +57,13 @@ namespace nn
 		HyperParameters hyperParameters {};
 		
 		// define every how many epochs to evaluate the network. If it's 0, it evaluates only at the end
-		size_t epochCalculationTestData = 0;
-		size_t epochCalculationValidationData = 0;
-		size_t epochCalculationTrainingData = 0;
+		size_t epochCalculationAccuracyTestData = 0;
+		size_t epochCalculationAccuracyValidationData = 0;
+		size_t epochCalculationAccuracyTrainingData = 0;
+		
+		size_t epochCalculationTotalCostTestData = 0;
+		size_t epochCalculationTotalCostValidationData = 0;
+		size_t epochCalculationTotalCostTrainingData = 0;
 		
 		size_t nMaxEpochsWithNoScoreImprovements = 0;
 		
@@ -75,9 +79,9 @@ namespace nn
 		                    int debugLevel_ = 0) : trainingData(trainingData_), testData(testData_),
 		                                           validationData(validationData_), evaluator(evaluator_),
 		                                           hyperParameters(hyperParameters_),
-		                                           epochCalculationTestData(epochCalculationTestData_),
-		                                           epochCalculationValidationData(epochCalculationValidationData_),
-		                                           epochCalculationTrainingData(epochCalculationTrainingData_),
+		                                           epochCalculationAccuracyTestData(epochCalculationTestData_),
+		                                           epochCalculationAccuracyValidationData(epochCalculationValidationData_),
+		                                           epochCalculationAccuracyTrainingData(epochCalculationTrainingData_),
 		                                           debugLevel(debugLevel_)
 		{
 		}
