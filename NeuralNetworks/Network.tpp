@@ -15,50 +15,30 @@ namespace nn
 	}
 	
 	template<MathDomain mathDomain>
-	Network<mathDomain>::Network(const std::vector<size_t>& nNeurons,
-								 IBiasWeightInitializer<mathDomain>&& initializer,
+	Network<mathDomain>::Network(const std::vector<lay>& layers,
 								 std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
 								 std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept
-			: _nNeurons(nNeurons), _costFunction(std::move(costFunction)), _miniBatchShuffler(std::move(miniBatchShuffler))
+			: _layers(layers), _costFunction(std::move(costFunction)), _miniBatchShuffler(std::move(miniBatchShuffler))
 	{
-		for (size_t l = 0; l < GetNumberOfLayers(); ++l)
-		{
-			_biases.emplace_back(vec(static_cast<unsigned>(_nNeurons[l + 1]), 0.0));
-			initializer.Set(_biases.back());
-			
-			_weights.emplace_back(mat(static_cast<unsigned>(_nNeurons[l + 1]), static_cast<unsigned>(_nNeurons[l]), 0.0));
-			initializer.Set(_weights.back());
-		}
+		for (size_t l = 1; l < _layers.size(); ++l)
+			assert(_layers[l]->GetNumberOfInputs() == _layers[l - 1]->GetNumberOfOutputs());
 	}
 	
 	template<MathDomain mathDomain>
-	void Network<mathDomain>::Evaluate(mat& out, const mat& in, const int debugLevel, std::vector<vec>& cache) const noexcept
+	void Network<mathDomain>::Evaluate(mat& out, const mat& in, const int debugLevel) const noexcept
 	{
 		Stopwatch sw(true);
 		
-		if (cache.empty())
-		{
-			for (size_t l = 0; l < GetNumberOfLayers(); ++l)
-				cache.emplace_back(vec(static_cast<unsigned>(_nNeurons[l + 1]), 0.0));
-		}
-		
 		for (size_t col = 0; col < out.nCols(); ++col)
 		{
-			// sigmoid(w * cache + b)
-			_weights[0].Dot(cache[0], *in.columns[col]);
-			cache[0].AddEqual(_biases[0]);
-			nn::detail::Sigmoid(cache[0].GetBuffer(), cache[0].GetBuffer());
+			// use input for first layer
+			_layers.front()->Evaluate(*in.columns[col]);
 			
-			// sigmoid(w * cache + b)
-			for (size_t layer = 1; layer < GetNumberOfLayers(); ++layer)
-			{
-				_weights[layer].Dot(cache[layer], cache[layer - 1]);
-				cache[layer].AddEqual(_biases[layer]);
-				nn::detail::Sigmoid(cache[layer].GetBuffer(), cache[layer].GetBuffer());
-			}
+			for (size_t l = 1; l < GetNumberOfLayers() - 1; ++l)
+				_layers[l]->Evaluate(_layers[l - 1]->GetActivation());
 			
-			// copy result in output
-			out.columns[col]->ReadFrom(cache.back());
+			// use output column for last layer!
+			_layers.back()->Evaluate(_layers[GetNumberOfLayers() - 2]->GetActivation(), out.columns[col].get());
 		}
 		
 		sw.Stop();
@@ -71,9 +51,8 @@ namespace nn
 	{
 		Stopwatch sw;
 		
-		MiniBatchData<mathDomain> data(networkTrainingData, _biases, _weights);
+		MiniBatchData<mathDomain> data(networkTrainingData);
 		std::unordered_map<size_t, mat> modelOutputCache;
-		std::vector<vec> evaluatorCache {};
 		static constexpr size_t nEvaluationDimensions = { 3 };
 		std::array<double, nEvaluationDimensions> bestAccuracies = {{ 0.0 }};
 		std::array<size_t, nEvaluationDimensions> nEpochsWithNoImprovements = {{ 0 }};
@@ -82,7 +61,7 @@ namespace nn
 			if (epoch > 0 && (i + 1) % epoch == 0)
 			{
 				const auto modelOutput = modelOutputCache.insert({ networkData.expectedOutput.nCols(), mat(networkData.expectedOutput.nRows(), networkData.expectedOutput.nCols()) }).first;
-				Evaluate(modelOutput->second, networkData.input, networkTrainingData.debugLevel, evaluatorCache);
+				Evaluate(modelOutput->second, networkData.input, networkTrainingData.debugLevel);
 				const double accuracy = networkTrainingData.evaluator(modelOutput->second, networkData.expectedOutput);
 				
 				if (accuracy > bestAccuracies[accuracyIndex])
@@ -110,9 +89,9 @@ namespace nn
 			if (epoch > 0 && (i + 1) % epoch == 0)
 			{
 				const auto modelOutput = modelOutputCache.insert({ networkData.expectedOutput.nCols(), mat(networkData.expectedOutput.nRows(), networkData.expectedOutput.nCols()) }).first;
-				Evaluate(modelOutput->second, networkData.input, networkTrainingData.debugLevel, evaluatorCache);
+				Evaluate(modelOutput->second, networkData.input, networkTrainingData.debugLevel);
 				
-				const double totalCost =  _costFunction->Evaluate(modelOutput->second, networkData.expectedOutput, _weights, networkTrainingData.hyperParameters.lambda);
+				const double totalCost =  _costFunction->Evaluate(modelOutput->second, networkData.expectedOutput, _layers, networkTrainingData.hyperParameters.lambda);
 				std::cout << "\t###\tTotal Cost = " << totalCost << " ###" << std::endl;
 			}
 		};
@@ -133,6 +112,7 @@ namespace nn
 				data.startIndex = data.endIndex;
 				data.endIndex += networkTrainingData.hyperParameters.miniBacthSize;
 				
+				// TODO: put in the optimizer
 				UpdateMiniBatch(data);
 			}
 			
@@ -158,7 +138,8 @@ namespace nn
 	void Network<mathDomain>::UpdateMiniBatch(MiniBatchData<mathDomain>& data) noexcept
 	{
 		Stopwatch sw(true);
-		data.Reset();
+		for (auto& layer: _layers)
+			layer->Reset();
 		
 		// calculates analytically the gradient, by means of backward differentiation
 		AdjointDifferentiation(data);
@@ -180,37 +161,36 @@ namespace nn
 		for (size_t i = data.startIndex; i < data.endIndex; ++i)
 		{
 			// network evaluation
-			for (size_t layer = 0; layer < GetNumberOfLayers(); ++layer)
-			{
-				data.EvaluateWorker(layer, layer == 0 ? *data.networkTrainingData.trainingData.input.columns[i]
-				                                      : data.activations[layer - 1], _biases[layer], _weights[layer]);
-			}
+			_layers[0]->Evaluate(*data.networkTrainingData.trainingData.input.columns[i]);
+			for (size_t l = 1; l < GetNumberOfLayers(); ++l)
+				_layers[l]->Evaluate(_layers[l - 1]->GetActivation());
 			
-			// data.activations[GetNumberOfLayers() - 1] will be overridden with the objective function derivative
-			SetObjectiveFunctionDerivative(i, data);
+			// *** Back propagation of the last layer ***
+			// last layer activation will be overridden with the cost function derivative!
+			SetCostFunctionGradient(*data.networkTrainingData.trainingData.expectedOutput.columns[i]);
+			const auto& costFunctionGradient = _layers.back()->GetActivation();
 			
 			// back propagation
-			data.biasGradient[GetNumberOfLayers() - 1].AddEqual(data.activations[GetNumberOfLayers() - 1]);
-			mat::KroneckerProduct(
-					data.weightGradient[GetNumberOfLayers() - 1],
-					data.activations[GetNumberOfLayers() - 1],
-					data.activations[GetNumberOfLayers() - 2]);
+			_layers.back()->GetBiasGradient().AddEqual(costFunctionGradient);
+			mat::KroneckerProduct(_layers.back()->GetWeightGradient(),
+					              costFunctionGradient,
+					              _layers[GetNumberOfLayers() - 2]->GetActivation());
+			// ***
 			
-			for (size_t layer = 2; layer <= GetNumberOfLayers(); ++layer)
+			// now back-propagate through the remaining layers
+			for (size_t l = 2; l <= GetNumberOfLayers(); ++l)
 			{
-				_weights[GetNumberOfLayers() - layer + 1].Dot(
-						data.biasGradientCache[GetNumberOfLayers() - layer],
-						layer == 2 ? data.activations[GetNumberOfLayers() - 1] : data.biasGradientCache[GetNumberOfLayers() - layer + 1],
-						MatrixOperation::Transpose);
+				auto& nextLayer     = _layers[GetNumberOfLayers() - l + 1];
+				auto& layer         = _layers[GetNumberOfLayers() - l];
+				auto& previousInput = l == 2 ? *data.networkTrainingData.trainingData.input.columns[i] : _layers[GetNumberOfLayers() - l - 1]->GetActivation();
 				
-				data.biasGradientCache[GetNumberOfLayers() - layer] %= data.activationsDerivative[GetNumberOfLayers() - layer];
-				data.biasGradient[GetNumberOfLayers() - layer] += data.biasGradientCache[GetNumberOfLayers() - layer];
+				nextLayer->GetWeight().Dot(layer->GetBiasGradientCache(),
+						                   l == 2 ? costFunctionGradient : nextLayer->GetBiasGradientCache(),
+						                   MatrixOperation::Transpose);
 				
-				data.weightGradientCache[GetNumberOfLayers() - layer].Set(0.0);
-				mat::KroneckerProduct(
-						data.weightGradient[GetNumberOfLayers() - layer],
-						data.biasGradientCache[GetNumberOfLayers() - layer],
-						layer == 2 ? *data.networkTrainingData.trainingData.input.columns[i] : data.activations[GetNumberOfLayers() - layer - 1]);
+				layer->GetBiasGradientCache() %= layer->GetActivationGradient();
+				layer->GetBiasGradient() += layer->GetBiasGradientCache();
+				mat::KroneckerProduct(layer->GetWeightGradient(), layer->GetBiasGradientCache(), previousInput);
 			}
 		}
 		
@@ -221,13 +201,13 @@ namespace nn
 	}
 	
 	template<MathDomain mathDomain>
-	void Network<mathDomain>::SetObjectiveFunctionDerivative(const size_t i, MiniBatchData<mathDomain>& data) const noexcept
+	void Network<mathDomain>::SetCostFunctionGradient(const vec& expectedOuput) const noexcept
 	{
-		vec& expected = data.activations[GetNumberOfLayers() - 1];
-		const vec& actual = *data.networkTrainingData.trainingData.expectedOutput.columns[i];
-		assert(expected.size() == actual.size());
+		auto& lastLayer = _layers.back();
+		auto& modelOutput = lastLayer->GetActivation();  // this will be overridden!
+		assert(modelOutput.size() == expectedOuput.size());
 		
-		_costFunction->EvaluateDerivative(expected, actual, data.activationsDerivative[GetNumberOfLayers() - 1]);
+		_costFunction->EvaluateDerivative(modelOutput, expectedOuput, lastLayer->GetActivationGradient());
 	}
 	
 	template<MathDomain mathDomain>
@@ -237,14 +217,8 @@ namespace nn
 		
 		const double averageLearningRate = data.networkTrainingData.hyperParameters.GetAverageLearningRate();
 		const double regularizationFactor = 1.0 - (data.networkTrainingData.hyperParameters.learningRate * data.networkTrainingData.hyperParameters.lambda) / data.networkTrainingData.trainingData.GetNumberOfSamples();
-		for (size_t i = 0; i < _biases.size(); ++i)
-			_biases[i].AddEqual(data.biasGradient[i], -averageLearningRate);
-
-		for (size_t i = 0; i < _weights.size(); ++i)
-		{
-			_weights[i].Scale(regularizationFactor);
-			_weights[i].AddEqual(data.weightGradient[i], -averageLearningRate);
-		}
+		for (auto& layer: _layers)
+			layer->Update(averageLearningRate, regularizationFactor);
 		
 		sw.Stop();
 		

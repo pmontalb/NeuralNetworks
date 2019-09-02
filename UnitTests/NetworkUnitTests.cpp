@@ -6,6 +6,7 @@
 #include <NeuralNetworks/Initializers/SmallVarianceRandomBiasWeightInitializer.h>
 #include <NeuralNetworks/CostFunctions/QuadraticCostFunction.h>
 #include <NeuralNetworks/CostFunctions/CrossEntropyCostFunction.h>
+#include <NeuralNetworks/Layers/DenseLayer.h>
 
 #include <map>
 
@@ -59,7 +60,7 @@ namespace nnt
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
 			
 			if (expectedScores[currentIter++] != score)
-				throw std::runtime_error("");
+				throw std::runtime_error(std::to_string(score));
 			
 			return static_cast<double>(score);
 		};
@@ -73,9 +74,10 @@ namespace nnt
 		data.hyperParameters.learningRate = 3.0;
 		data.hyperParameters.lambda = 0.0;
 		
-		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
+		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::RandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::RandomBiasWeightInitializer<md>()));
 		nn::Network<md> network(networkTopology,
-				                nn::RandomBiasWeightInitializer<md>(),
 				                std::make_unique<nn::QuadraticCostFunction<md>>(),
 				                std::make_unique<nn::RandomShuffler<md>>());
 		
@@ -105,7 +107,7 @@ namespace nnt
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
 			
 			if (expectedScores[currentIter++] != score)
-				throw std::runtime_error("");
+				throw std::runtime_error(std::to_string(score));
 			
 			return static_cast<double>(score);
 		};
@@ -120,9 +122,10 @@ namespace nnt
 		data.hyperParameters.learningRate = 3.0;
 		data.hyperParameters.lambda = 0.0;
 		
-		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
+		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 		nn::Network<md> network(networkTopology,
-				                nn::SmallVarianceRandomBiasWeightInitializer<md>(),
 				                std::make_unique<nn::QuadraticCostFunction<md>>(),
 				                std::make_unique<nn::RandomShuffler<md>>());
 		ASSERT_NO_THROW(network.Train(data));
@@ -165,11 +168,12 @@ namespace nnt
 		data.hyperParameters.learningRate = 0.5;
 		data.hyperParameters.lambda = 0.1;
 		
-		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
+		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 		nn::Network<md> network(networkTopology,
-								nn::SmallVarianceRandomBiasWeightInitializer<md>(),
-								        std::make_unique<nn::QuadraticCostFunction<md>>(),
-								        std::make_unique<nn::RandomShuffler<md>>());
+						        std::make_unique<nn::QuadraticCostFunction<md>>(),
+						        std::make_unique<nn::RandomShuffler<md>>());
 		ASSERT_NO_THROW(network.Train(data));
 	}
 	
@@ -211,9 +215,10 @@ namespace nnt
 		data.hyperParameters.learningRate = 0.5;
 		data.hyperParameters.lambda = 0.1;
 		
-		auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
+		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 		nn::Network<md> network(networkTopology,
-				                nn::SmallVarianceRandomBiasWeightInitializer<md>(),
 				                std::make_unique<nn::CrossEntropyCostFunction<md>>(),
 				                std::make_unique<nn::RandomShuffler<md>>());
 		ASSERT_NO_THROW(network.Train(data));

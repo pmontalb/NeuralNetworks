@@ -71,7 +71,7 @@ int main()
 	data.epochCalculationAccuracyTestData = 1;
 	data.epochCalculationAccuracyValidationData = 0;
 	data.epochCalculationAccuracyTrainingData = 0;
-	data.epochCalculationTotalCostTestData = 1;
+	data.epochCalculationTotalCostTestData = 0;
 	data.epochCalculationTotalCostValidationData = 0;
 	data.epochCalculationTotalCostTrainingData = 0;
 	

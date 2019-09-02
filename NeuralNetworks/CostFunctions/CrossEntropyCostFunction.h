@@ -1,6 +1,7 @@
 #pragma once
 
 #include <NeuralNetworks/CostFunctions/CostFunction.h>
+#include <NeuralNetworksManager.h>
 
 namespace nn
 {
