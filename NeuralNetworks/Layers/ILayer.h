@@ -28,6 +28,6 @@ namespace nn
 		virtual Bias& GetBiasGradientCache() noexcept = 0;
 		
 		// reset cached quantities
-		virtual void Reset() const noexcept {};
+		virtual void Reset() const noexcept {}
 	};
 }

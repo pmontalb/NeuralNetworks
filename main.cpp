@@ -9,6 +9,7 @@
 
 #include <map>
 #include <NeuralNetworks/CostFunctions/QuadraticCostFunction.h>
+#include <NeuralNetworks/Layers/DenseLayer.h>
 
 static constexpr MathDomain md = MathDomain::Double;
 
@@ -80,11 +81,12 @@ int main()
 	data.hyperParameters.learningRate = 0.1;
 	data.hyperParameters.lambda = 5.0;
 	
-	auto networkTopology = std::vector<size_t>{{ 784, 30, 10 }};
+	std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
+	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::ZeroBiasWeightInitializer<md>()));
+	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::ZeroBiasWeightInitializer<md>()));
 	nn::Network<md> network(networkTopology,
-			                nn::ZeroBiasWeightInitializer<md>(),
-			                std::make_unique<nn::CrossEntropyCostFunction<md>>(),
-			                std::make_unique<nn::IdentityShuffler<md>>());
+	                        std::make_unique<nn::CrossEntropyCostFunction<md>>(),
+	                        std::make_unique<nn::IdentityShuffler<md>>());
 	network.Train(data);
 	return 0;
 }

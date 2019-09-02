@@ -9,8 +9,8 @@ namespace nn
 	class Layer: public ILayer<mathDomain>
 	{
 	public:
-		Layer(const size_t nInput,
-			  const size_t nOutput,
+		Layer(const unsigned nInput,
+			  const unsigned nOutput,
 			  IBiasWeightInitializer<mathDomain>&& initializer)
 			: ILayer<mathDomain>(),
 			  
