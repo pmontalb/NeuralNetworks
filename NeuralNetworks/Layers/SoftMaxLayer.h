@@ -1,14 +1,20 @@
 #pragma once
 
 #include <NeuralNetworks/Layers/Layer.h>
+#include <NeuralNetworks/Activations/SoftMaxActivationFunction.h>
+
+#include <memory>
 
 namespace nn
 {
 	template<MathDomain mathDomain>
-	class DenseLayer final: public Layer<mathDomain>
+	class SoftMaxLayer final: public Layer<mathDomain>
 	{
 	public:
-		using Layer<mathDomain>::Layer;
+		SoftMaxLayer(const unsigned nInput, const unsigned nOutput, IBiasWeightInitializer<mathDomain>&& initializer)
+				: Layer<mathDomain>(nInput, nOutput, std::make_unique<SoftMaxActivationFunction<mathDomain>>(), initializer)
+		{
+		}
 		
 		void Evaluate(const typename Layer<mathDomain>::Vector& input, typename Layer<mathDomain>::Vector* const output) noexcept override
 		{
@@ -19,7 +25,8 @@ namespace nn
 			if (!output)
 			{
 				this->_activationFunction->Evaluate(this->_activation, this->_zVector);
-				this->_activationFunction->EvaluateGradient(this->_activationGradient, this->_zVector);
+				// not really needed!
+				//this->_activationFunction->EvaluateGradient(this->_activationGradient, this->_zVector);
 			}
 			else
 				this->_activationFunction->Evaluate(*output, this->_zVector);

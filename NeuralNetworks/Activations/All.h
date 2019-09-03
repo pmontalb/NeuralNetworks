@@ -1,8 +1,10 @@
-//
-// Created by raiden on 03/09/2019.
-//
+#pragma once
 
-#ifndef NEURALNETWORKS_ALL_H
-#define NEURALNETWORKS_ALL_H
-
-#endif //NEURALNETWORKS_ALL_H
+#include <NeuralNetworks/Activations/SigmoidActivationFunction.h>
+#include <NeuralNetworks/Activations/HyperbolicTangentActivationFunction.h>
+#include <NeuralNetworks/Activations/RectifiedLinearUnitActivationFunction.h>
+#include <NeuralNetworks/Activations/LeakyRectifiedLinearUnitActivationFunction.h>
+#include <NeuralNetworks/Activations/InverseSquareRootLinearUnitActivationFunction.h>
+#include <NeuralNetworks/Activations/ExponentialLinearUnitActivationFunction.h>
+#include <NeuralNetworks/Activations/BentIdentityActivationFunction.h>
+#include <NeuralNetworks/Activations/SoftMaxActivationFunction.h>

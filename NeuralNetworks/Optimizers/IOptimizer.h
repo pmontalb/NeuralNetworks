@@ -1,8 +1,1 @@
-//
-// Created by raiden on 02/09/2019.
-//
-
-#ifndef NEURALNETWORKS_IOPTIMIZER_H
-#define NEURALNETWORKS_IOPTIMIZER_H
-
-#endif //NEURALNETWORKS_IOPTIMIZER_H
+#pragma once

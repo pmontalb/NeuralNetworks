@@ -4,6 +4,8 @@
 
 namespace nn
 {
+	template<MathDomain mathDomain> class IActivationFunction;
+	
 	template<MathDomain mathDomain>
 	class ILayer
 	{

@@ -142,7 +142,29 @@
 
 __CREATE_FUNCTION_2_ARG(Sigmoid, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
 __CREATE_FUNCTION_2_ARG(SigmoidPrime, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+
+__CREATE_FUNCTION_2_ARG(HyperbolicTangent, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(HyperbolicTangentPrime, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+
+__CREATE_FUNCTION_2_ARG(RectifiedLinearUnit, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(RectifiedLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+
+__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnit, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+
+__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnit, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+
+__CREATE_FUNCTION_2_ARG(ExponentialLinearUnit, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(ExponentialLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+
+__CREATE_FUNCTION_2_ARG(BentIdentity, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(BentIdentityPrime, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+
+__CREATE_FUNCTION_2_ARG(SoftMax, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
+
 __CREATE_FUNCTION_3_ARG(CrossEntropyCostFunction, CudaKernelExceptionFactory, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSoftMax, CudaKernelExceptionFactory, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
 
 #pragma region Undef macros
 

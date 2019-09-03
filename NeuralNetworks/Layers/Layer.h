@@ -2,6 +2,7 @@
 
 #include <NeuralNetworks/Initializers/IBiasWeightInitializer.h>
 #include <NeuralNetworks/Layers/ILayer.h>
+#include <NeuralNetworks/Activations/IActivationFunction.h>
 
 namespace nn
 {
@@ -11,6 +12,7 @@ namespace nn
 	public:
 		Layer(const unsigned nInput,
 			  const unsigned nOutput,
+			  std::unique_ptr<IActivationFunction<mathDomain>>&& activationFunction,
 			  IBiasWeightInitializer<mathDomain>&& initializer)
 			: ILayer<mathDomain>(),
 			  
@@ -25,7 +27,9 @@ namespace nn
 			  _zVector(nOutput, 0.0),
 			  _activation(nOutput, 0.0),
 			  _activationGradient(nOutput, 0.0),
-			  _biasGradientCache(nOutput, 0.0)
+			  _biasGradientCache(nOutput, 0.0),
+			
+			  _activationFunction(std::move(activationFunction))
 		{
 			initializer.Set(_bias);
 			initializer.Set(_weight);
@@ -76,5 +80,7 @@ namespace nn
 		typename ILayer<mathDomain>::Vector _activationGradient;
 		
 		typename ILayer<mathDomain>::Bias _biasGradientCache;
+		
+		std::unique_ptr<IActivationFunction<mathDomain>> _activationFunction;
 	};
 }

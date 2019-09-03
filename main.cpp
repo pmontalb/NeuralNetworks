@@ -1,15 +1,15 @@
 #include <iostream>
 
 #include <NeuralNetworks/TrainingData.h>
-#include <Types.h>
-
 #include <NeuralNetworks/Network.h>
-#include <NeuralNetworks/Shufflers/IdentityShuffler.h>
-#include <NeuralNetworks/Initializers/ZeroBiasWeightInitializer.h>
+
+#include <NeuralNetworks/Shufflers/All.h>
+#include <NeuralNetworks/Initializers/All.h>
+#include <NeuralNetworks/CostFunctions/All.h>
+#include <NeuralNetworks/Layers/All.h>
+#include <NeuralNetworks/Activations/All.h>
 
 #include <map>
-#include <NeuralNetworks/CostFunctions/QuadraticCostFunction.h>
-#include <NeuralNetworks/Layers/DenseLayer.h>
 
 static constexpr MathDomain md = MathDomain::Double;
 
@@ -82,8 +82,8 @@ int main()
 	data.hyperParameters.lambda = 5.0;
 	
 	std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
-	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::ZeroBiasWeightInitializer<md>()));
-	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::ZeroBiasWeightInitializer<md>()));
+	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
+	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
 	nn::Network<md> network(networkTopology,
 	                        std::make_unique<nn::CrossEntropyCostFunction<md>>(),
 	                        std::make_unique<nn::IdentityShuffler<md>>());

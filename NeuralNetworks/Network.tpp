@@ -207,7 +207,7 @@ namespace nn
 		auto& modelOutput = lastLayer->GetActivation();  // this will be overridden!
 		assert(modelOutput.size() == expectedOuput.size());
 		
-		_costFunction->EvaluateDerivative(modelOutput, expectedOuput, lastLayer->GetActivationGradient());
+		_costFunction->EvaluateGradient(modelOutput, expectedOuput, lastLayer->GetActivationGradient());
 	}
 	
 	template<MathDomain mathDomain>

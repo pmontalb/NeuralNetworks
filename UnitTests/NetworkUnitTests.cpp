@@ -7,6 +7,7 @@
 #include <NeuralNetworks/CostFunctions/QuadraticCostFunction.h>
 #include <NeuralNetworks/CostFunctions/CrossEntropyCostFunction.h>
 #include <NeuralNetworks/Layers/DenseLayer.h>
+#include <NeuralNetworks/Activations/SigmoidActivationFunction.h>
 
 #include <map>
 
@@ -48,7 +49,8 @@ namespace nnt
 		nn::Vector<MathDomain::Int> cache3(10000u);
 		size_t currentIter = 0;
 		
-		std::vector<int> expectedScores = { 9067, 9204, 9241 };
+		std::vector<int> expectedScores = { 9052, 9190, 9251 };
+		std::vector<int> actualScores;
 		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 		{
 			assert(modelOutput.nCols() == cache1.size());
@@ -59,8 +61,7 @@ namespace nnt
 			
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
 			
-			if (expectedScores[currentIter++] != score)
-				throw std::runtime_error(std::to_string(score));
+			actualScores.push_back(score);
 			
 			return static_cast<double>(score);
 		};
@@ -75,13 +76,15 @@ namespace nnt
 		data.hyperParameters.lambda = 0.0;
 		
 		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
-		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::RandomBiasWeightInitializer<md>()));
-		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::RandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::RandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::RandomBiasWeightInitializer<md>()));
 		nn::Network<md> network(networkTopology,
 				                std::make_unique<nn::QuadraticCostFunction<md>>(),
 				                std::make_unique<nn::RandomShuffler<md>>());
+		network.Train(data);
 		
-		ASSERT_NO_THROW(network.Train(data));
+		for (size_t i = 0; i < actualScores.size(); ++i)
+			ASSERT_DOUBLE_EQ(expectedScores[i], actualScores[i]);
 	}
 	
 	TEST_F(NetworkTests, TrivialNetworkSmallVarianceWeightsConsistency)
@@ -95,7 +98,8 @@ namespace nnt
 		nn::Vector<MathDomain::Int> cache3(10000u);
 		size_t currentIter = 0;
 		
-		std::vector<int> expectedScores = { 9393, 9393, 9482 };
+		std::vector<int> expectedScores = { 9393, 9397, 9502 };
+		std::vector<int> actualScores;
 		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 		{
 			assert(modelOutput.nCols() == cache1.size());
@@ -106,8 +110,7 @@ namespace nnt
 			
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
 			
-			if (expectedScores[currentIter++] != score)
-				throw std::runtime_error(std::to_string(score));
+			actualScores.push_back(score);
 			
 			return static_cast<double>(score);
 		};
@@ -123,12 +126,14 @@ namespace nnt
 		data.hyperParameters.lambda = 0.0;
 		
 		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
-		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
-		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 		nn::Network<md> network(networkTopology,
 				                std::make_unique<nn::QuadraticCostFunction<md>>(),
 				                std::make_unique<nn::RandomShuffler<md>>());
-		ASSERT_NO_THROW(network.Train(data));
+		network.Train(data);
+		for (size_t i = 0; i < actualScores.size(); ++i)
+			EXPECT_DOUBLE_EQ(expectedScores[i], actualScores[i]);
 	}
 	
 	TEST_F(NetworkTests, TrivialNetworkSmallVarianceWeightsRegularizedConsistency)
@@ -143,6 +148,7 @@ namespace nnt
 		size_t currentIter = 0;
 		
 		std::vector<int> expectedScores = { 9213, 9376, 9451 };
+		std::vector<int> actualScores;
 		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 		{
 			assert(modelOutput.nCols() == cache1.size());
@@ -152,8 +158,7 @@ namespace nnt
 			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
 			
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
-			if (expectedScores[currentIter++] != score)
-				throw std::runtime_error(std::to_string(score));
+			actualScores.push_back(score);
 			
 			return static_cast<double>(score);
 		};
@@ -169,12 +174,14 @@ namespace nnt
 		data.hyperParameters.lambda = 0.1;
 		
 		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
-		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
-		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 		nn::Network<md> network(networkTopology,
 						        std::make_unique<nn::QuadraticCostFunction<md>>(),
 						        std::make_unique<nn::RandomShuffler<md>>());
-		ASSERT_NO_THROW(network.Train(data));
+		network.Train(data);
+		for (size_t i = 0; i < actualScores.size(); ++i)
+			EXPECT_DOUBLE_EQ(expectedScores[i], actualScores[i]);
 	}
 	
 	TEST_F(NetworkTests, TrivialNetworkSmallVarianceWeightsRegularizedCrossEntropyConsistency)
@@ -189,6 +196,7 @@ namespace nnt
 		size_t currentIter = 0;
 		
 		std::vector<int> expectedScores = { 9416, 9448, 9516 };
+		std::vector<int> actualScores;
 		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 		{
 			assert(modelOutput.nCols() == cache1.size());
@@ -199,8 +207,7 @@ namespace nnt
 			
 			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
 			
-			if (expectedScores[currentIter++] != score)
-				throw std::runtime_error(std::to_string(score));
+			actualScores.push_back(score);
 			
 			return static_cast<double>(score);
 		};
@@ -216,11 +223,13 @@ namespace nnt
 		data.hyperParameters.lambda = 0.1;
 		
 		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
-		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
-		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 		nn::Network<md> network(networkTopology,
 				                std::make_unique<nn::CrossEntropyCostFunction<md>>(),
 				                std::make_unique<nn::RandomShuffler<md>>());
-		ASSERT_NO_THROW(network.Train(data));
+		network.Train(data);
+		for (size_t i = 0; i < actualScores.size(); ++i)
+			EXPECT_DOUBLE_EQ(expectedScores[i], actualScores[i]);
 	}
 }
