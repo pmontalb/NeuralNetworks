@@ -1,4 +1,4 @@
 #pragma once
 
-#include <NeuralNetworks/Shufflers/IdentityShuffler.h>
-#include <NeuralNetworks/Shufflers/RandomShuffler.h>
+#include <Optimizers/Shufflers/IdentityShuffler.h>
+#include <Optimizers/Shufflers/RandomShuffler.h>

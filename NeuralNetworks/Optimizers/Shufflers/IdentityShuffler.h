@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NeuralNetworks/Shufflers/IShuffler.h>
+#include <Optimizers/Shufflers/IShuffler.h>
 
 namespace nn
 {

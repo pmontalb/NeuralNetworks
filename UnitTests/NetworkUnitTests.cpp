@@ -2,14 +2,15 @@
 #include <gtest/gtest.h>
 
 #include <Network.h>
-#include <NeuralNetworks/Initializers/RandomBiasWeightInitializer.h>
-#include <NeuralNetworks/Initializers/SmallVarianceRandomBiasWeightInitializer.h>
-#include <NeuralNetworks/CostFunctions/QuadraticCostFunction.h>
-#include <NeuralNetworks/CostFunctions/CrossEntropyCostFunction.h>
-#include <NeuralNetworks/Layers/DenseLayer.h>
-#include <NeuralNetworks/Activations/SigmoidActivationFunction.h>
+#include <NeuralNetworks/Initializers/All.h>
+#include <NeuralNetworks/CostFunctions/All.h>
+#include <NeuralNetworks/Layers/All.h>
+#include <NeuralNetworks/Activations/All.h>
+#include <NeuralNetworks/Optimizers/All.h>
+#include <NeuralNetworks/Optimizers/Shufflers/All.h>
 
 #include <map>
+#include <Layers/SoftMaxLayer.h>
 
 namespace nnt
 {
@@ -78,10 +79,10 @@ namespace nnt
 		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
 		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::RandomBiasWeightInitializer<md>()));
 		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::RandomBiasWeightInitializer<md>()));
-		nn::Network<md> network(networkTopology,
-				                std::make_unique<nn::QuadraticCostFunction<md>>(),
-				                std::make_unique<nn::RandomShuffler<md>>());
-		network.Train(data);
+		nn::Network<md> network(networkTopology);
+		
+		nn::BatchedSgd<md> optimizer(networkTopology, std::make_unique<nn::QuadraticCostFunction<md>>(), std::make_unique<nn::RandomShuffler<md>>());
+		network.Train(optimizer, data);
 		
 		for (size_t i = 0; i < actualScores.size(); ++i)
 			ASSERT_DOUBLE_EQ(expectedScores[i], actualScores[i]);
@@ -128,10 +129,10 @@ namespace nnt
 		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
 		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
-		nn::Network<md> network(networkTopology,
-				                std::make_unique<nn::QuadraticCostFunction<md>>(),
-				                std::make_unique<nn::RandomShuffler<md>>());
-		network.Train(data);
+		nn::Network<md> network(networkTopology);
+		
+		nn::BatchedSgd<md> optimizer(networkTopology, std::make_unique<nn::QuadraticCostFunction<md>>(), std::make_unique<nn::RandomShuffler<md>>());
+		network.Train(optimizer, data);
 		for (size_t i = 0; i < actualScores.size(); ++i)
 			EXPECT_DOUBLE_EQ(expectedScores[i], actualScores[i]);
 	}
@@ -176,10 +177,10 @@ namespace nnt
 		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
 		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
-		nn::Network<md> network(networkTopology,
-						        std::make_unique<nn::QuadraticCostFunction<md>>(),
-						        std::make_unique<nn::RandomShuffler<md>>());
-		network.Train(data);
+		nn::Network<md> network(networkTopology);
+		
+		nn::BatchedSgd<md> optimizer(networkTopology, std::make_unique<nn::QuadraticCostFunction<md>>(), std::make_unique<nn::RandomShuffler<md>>());
+		network.Train(optimizer, data);
 		for (size_t i = 0; i < actualScores.size(); ++i)
 			EXPECT_DOUBLE_EQ(expectedScores[i], actualScores[i]);
 	}
@@ -225,10 +226,59 @@ namespace nnt
 		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
 		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
-		nn::Network<md> network(networkTopology,
-				                std::make_unique<nn::CrossEntropyCostFunction<md>>(),
-				                std::make_unique<nn::RandomShuffler<md>>());
-		network.Train(data);
+		nn::Network<md> network(networkTopology);
+		
+		nn::BatchedSgd<md> optimizer(networkTopology, std::make_unique<nn::CrossEntropyCostFunctionSigmoid<md>>(), std::make_unique<nn::RandomShuffler<md>>());
+		network.Train(optimizer, data);
+		for (size_t i = 0; i < actualScores.size(); ++i)
+			EXPECT_DOUBLE_EQ(expectedScores[i], actualScores[i]);
+	}
+	
+	TEST_F(NetworkTests, RefinedNetworkConsistency)
+	{
+		auto trainingData = GetData<md>("Training", 784, 10, 50000);
+		auto validationData = GetData<md>("Validation", 784, 10, 10000);
+		auto testData = GetData<md>("Test", 784, 10, 10000);
+		
+		nn::Vector<MathDomain::Int> cache1(10000u);
+		nn::Vector<MathDomain::Int> cache2(10000u);
+		nn::Vector<MathDomain::Int> cache3(10000u);
+		size_t currentIter = 0;
+		
+		std::vector<int> expectedScores = { 9167, 9330, 9447 };
+		std::vector<int> actualScores;
+		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
+		{
+			assert(modelOutput.nCols() == cache1.size());
+			modelOutput.ColumnWiseArgAbsMaximum(cache1);
+			
+			assert(expectedOutput.nCols() == cache2.size());
+			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
+			
+			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			
+			actualScores.push_back(score);
+			
+			return static_cast<double>(score);
+		};
+		
+		nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
+		data.debugLevel = 2;
+		data.epochCalculationAccuracyTestData = 1;
+		data.nMaxEpochsWithNoScoreImprovements = 3;
+		
+		data.hyperParameters.nEpochs = 3;
+		data.hyperParameters.miniBacthSize = 10;
+		data.hyperParameters.learningRate = 0.1;
+		data.hyperParameters.lambda = 5.0;
+		
+		std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
+		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+		networkTopology.emplace_back(std::make_unique<nn::SoftMaxLayer<md>>(30, 10, nn::ZeroBiasWeightInitializer<md>()));
+		nn::Network<md> network(networkTopology);
+		
+		nn::BatchedSgd<md> optimizer(networkTopology, networkTopology.back()->GetCrossEntropyCostFunction(), std::make_unique<nn::RandomShuffler<md>>());
+		network.Train(optimizer, data);
 		for (size_t i = 0; i < actualScores.size(); ++i)
 			EXPECT_DOUBLE_EQ(expectedScores[i], actualScores[i]);
 	}

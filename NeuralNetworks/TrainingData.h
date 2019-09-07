@@ -7,6 +7,7 @@
 namespace nn
 {
 	template <MathDomain mathDomain> using Matrix = cl::ColumnWiseMatrix<MemorySpace::Device, mathDomain>;
+	template <MathDomain mathDomain> using Vector = cl::Vector<MemorySpace::Device, mathDomain>;
 	
 	template <MathDomain mathDomain>
 	struct TrainingData

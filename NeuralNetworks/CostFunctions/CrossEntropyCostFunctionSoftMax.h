@@ -10,7 +10,7 @@ namespace nn
 	class CrossEntropyCostFunctionSoftMax final: public CrossEntropyCostFunction<mathDomain>
 	{
 	public:
-		using CostFunction<mathDomain>::CostFunction;
+		using CrossEntropyCostFunction<mathDomain>::CrossEntropyCostFunction;
 		
 		double EvaluateWorker(typename ICostFunction<mathDomain>::Matrix& modelOutput, const typename ICostFunction<mathDomain>::Matrix& expectedOutput) const noexcept override
 		{

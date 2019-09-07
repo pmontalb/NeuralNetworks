@@ -110,7 +110,7 @@ __CREATE_FUNCTION_2_ARG(BentIdentityPrime, MemoryBuffer, z, MemoryBuffer, x);
 
 __CREATE_FUNCTION_2_ARG(SoftMax, MemoryBuffer, z, MemoryBuffer, x);
 
-__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunction, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSigmoid, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
 __CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSoftMax, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
 
 #pragma region Undef macros

@@ -3,7 +3,7 @@
 #include <NeuralNetworks/TrainingData.h>
 #include <NeuralNetworks/Network.h>
 
-#include <NeuralNetworks/Shufflers/All.h>
+#include <NeuralNetworks/Optimizers/All.h>
 #include <NeuralNetworks/Initializers/All.h>
 #include <NeuralNetworks/CostFunctions/All.h>
 #include <NeuralNetworks/Layers/All.h>
@@ -68,25 +68,21 @@ int main()
 	};
 	
 	nn::NetworkTrainingData<md> data(trainingData, testData, validationData, evaluator);
-	data.debugLevel = 2;
+	data.debugLevel = 1;
 	data.epochCalculationAccuracyTestData = 1;
-	data.epochCalculationAccuracyValidationData = 0;
-	data.epochCalculationAccuracyTrainingData = 0;
-	data.epochCalculationTotalCostTestData = 0;
-	data.epochCalculationTotalCostValidationData = 0;
-	data.epochCalculationTotalCostTrainingData = 0;
+	data.nMaxEpochsWithNoScoreImprovements = 10;
 	
 	data.hyperParameters.nEpochs = 30;
 	data.hyperParameters.miniBacthSize = 10;
 	data.hyperParameters.learningRate = 0.1;
-	data.hyperParameters.lambda = 5.0;
+	data.hyperParameters.lambda = 1.0;
 	
 	std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
-	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 30, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
-	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(30, 10, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
-	nn::Network<md> network(networkTopology,
-	                        std::make_unique<nn::CrossEntropyCostFunction<md>>(),
-	                        std::make_unique<nn::IdentityShuffler<md>>());
-	network.Train(data);
+	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 100, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+	networkTopology.emplace_back(std::make_unique<nn::SoftMaxLayer<md>>(100, 10, nn::ZeroBiasWeightInitializer<md>()));
+	nn::Network<md> network(networkTopology);
+	
+	nn::BatchedSgd<md> optimizer(networkTopology, networkTopology.back()->GetCrossEntropyCostFunction(), std::make_unique<nn::RandomShuffler<md>>());
+	network.Train(optimizer, data);
 	return 0;
 }

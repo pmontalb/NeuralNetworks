@@ -144,17 +144,17 @@ EXTERN_C
 	}
 
 	/**
-* sum(-x * log(y) - (1 - y) * log(1-x))
-* NB: overrides x
-*/
-	EXPORT int _CrossEntropyCostFunction(double& cost, MemoryBuffer x, MemoryBuffer y);
-	inline EXPORT int _CrossEntropyCostFunctionRaw(double& cost, const ptr_t x, const ptr_t y, const unsigned size, const MemorySpace memorySpace, const MathDomain mathDomain)
+	* sum(-x * log(y) - (1 - y) * log(1-x))
+	* NB: overrides x
+	*/
+	EXPORT int _CrossEntropyCostFunctionSigmoid(double& cost, MemoryBuffer x, MemoryBuffer y);
+	inline EXPORT int _CrossEntropyCostFunctionSigmoidRaw(double& cost, const ptr_t x, const ptr_t y, const unsigned size, const MemorySpace memorySpace, const MathDomain mathDomain)
 	{
-		return _CrossEntropyCostFunction(cost, MemoryBuffer(x, size, memorySpace, mathDomain), MemoryBuffer(y, size, memorySpace, mathDomain));
+		return _CrossEntropyCostFunctionSigmoid(cost, MemoryBuffer(x, size, memorySpace, mathDomain), MemoryBuffer(y, size, memorySpace, mathDomain));
 	}
 
 	/**
-	* sum(-x * log(y) - (1 - y) * log(1-x))
+	* sum(-x * log(y))
 	* NB: overrides x
 	*/
 	EXPORT int _CrossEntropyCostFunctionSoftMax(double& cost, MemoryBuffer x, MemoryBuffer y);
@@ -222,7 +222,7 @@ template <typename T>
 GLOBAL void __SoftMax__(T* RESTRICT z, const T* RESTRICT x, const unsigned sz);
 
 template <typename T>
-GLOBAL void __CrossEntropyCostFunction__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz);
+GLOBAL void __CrossEntropyCostFunctionSigmoid__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz);
 
 template <typename T>
 GLOBAL void __CrossEntropyCostFunctionSoftMax__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz);

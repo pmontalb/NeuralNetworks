@@ -194,7 +194,7 @@ GLOBAL void __SoftMax__(T* RESTRICT z, const T* RESTRICT x, const unsigned sz)
 }
 
 template <typename T>
-GLOBAL void __CrossEntropyCostFunction__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz)
+GLOBAL void __CrossEntropyCostFunctionSigmoid__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz)
 {
 	CUDA_FUNCTION_PROLOGUE;
 	
@@ -457,15 +457,15 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 
-	EXPORT int _CrossEntropyCostFunction(double& cost, MemoryBuffer x, const MemoryBuffer y)
+	EXPORT int _CrossEntropyCostFunctionSigmoid(double& cost, MemoryBuffer x, const MemoryBuffer y)
 	{
 		switch (x.mathDomain)
 		{
 			case MathDomain::Float:
-				CUDA_CALL_SINGLE(__CrossEntropyCostFunction__<float>, (float*)x.pointer, (float*)y.pointer, x.size);
+				CUDA_CALL_SINGLE(__CrossEntropyCostFunctionSigmoid__<float>, (float*)x.pointer, (float*)y.pointer, x.size);
 				break;
 			case MathDomain::Double:
-				CUDA_CALL_DOUBLE(__CrossEntropyCostFunction__<double>, (double*)x.pointer, (double*)y.pointer, x.size);
+				CUDA_CALL_DOUBLE(__CrossEntropyCostFunctionSigmoid__<double>, (double*)x.pointer, (double*)y.pointer, x.size);
 				break;
 			default:
 				return CudaKernelException::_NotImplementedException;

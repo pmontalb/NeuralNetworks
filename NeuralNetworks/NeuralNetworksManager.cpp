@@ -163,7 +163,7 @@ __CREATE_FUNCTION_2_ARG(BentIdentityPrime, CudaKernelExceptionFactory, MemoryBuf
 
 __CREATE_FUNCTION_2_ARG(SoftMax, CudaKernelExceptionFactory, MemoryBuffer, z, MemoryBuffer, x);
 
-__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunction, CudaKernelExceptionFactory, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSigmoid, CudaKernelExceptionFactory, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
 __CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSoftMax, CudaKernelExceptionFactory, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
 
 #pragma region Undef macros

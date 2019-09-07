@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NeuralNetworks/Shufflers/IShuffler.h>
+#include <Optimizers/Shufflers/IShuffler.h>
 #include <ColumnWiseMatrix.h>
 
 namespace nn

@@ -2,17 +2,20 @@
 
 #include <NeuralNetworks/Layers/Layer.h>
 #include <NeuralNetworks/Activations/SoftMaxActivationFunction.h>
+#include <NeuralNetworks/CostFunctions/CrossEntropyCostFunctionSoftMax.h>
 
 #include <memory>
 
 namespace nn
 {
+	// NB: due to its convoluted gradient, this layer must be used only with its cross entropy cost function, and only
+	// as a last layer
 	template<MathDomain mathDomain>
 	class SoftMaxLayer final: public Layer<mathDomain>
 	{
 	public:
 		SoftMaxLayer(const unsigned nInput, const unsigned nOutput, IBiasWeightInitializer<mathDomain>&& initializer)
-				: Layer<mathDomain>(nInput, nOutput, std::make_unique<SoftMaxActivationFunction<mathDomain>>(), initializer)
+				: Layer<mathDomain>(nInput, nOutput, std::make_unique<SoftMaxActivationFunction<mathDomain>>(), std::move(initializer))
 		{
 		}
 		
@@ -30,6 +33,11 @@ namespace nn
 			}
 			else
 				this->_activationFunction->Evaluate(*output, this->_zVector);
+		}
+		
+		std::unique_ptr<ICostFunction<mathDomain>> GetCrossEntropyCostFunction() const noexcept override
+		{
+			return std::make_unique<CrossEntropyCostFunctionSoftMax<mathDomain>>();
 		}
 	};
 }
