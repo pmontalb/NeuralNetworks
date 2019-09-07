@@ -43,9 +43,7 @@ namespace nn
 		            const double regularizationFactor) noexcept override final
 		{
 			_bias.AddEqual(biasGradient, -averageLearningRate);
-			
-			_weight.Scale(regularizationFactor);
-			_weight.AddEqual(weightGradient, -averageLearningRate);
+			_weight.AddEqualMatrix(weightGradient, MatrixOperation::None, MatrixOperation::None, regularizationFactor, -averageLearningRate);
 		}
 		
 		std::unique_ptr<ICostFunction<mathDomain>> GetCrossEntropyCostFunction() const noexcept override { return nullptr; }

@@ -23,8 +23,8 @@ namespace nn
 			// reset cache
 			for (size_t l = 0; l < this->_layers.size(); ++l)
 			{
-				this->_biasGradients[l].Set(0.0);
-				this->_weightGradients[l].Set(0.0);
+				dm::detail::Zero(this->_biasGradients[l].GetBuffer());
+				dm::detail::Zero(this->_weightGradients[l].GetBuffer());
 			}
 			
 			// calculates analytically the gradient, by means of backward differentiation
@@ -52,7 +52,7 @@ namespace nn
 						                              this->_layers.back()->GetActivationGradient());
 				
 				// back propagation
-				this->_biasGradients.back().AddEqual(costFunctionGradient);
+				this->_biasGradients.back() += costFunctionGradient;
 				Matrix<mathDomain>::KroneckerProduct(this->_weightGradients.back(),
 				                                     costFunctionGradient,
 				                                     this->_layers[nLayers - 2]->GetActivation());
