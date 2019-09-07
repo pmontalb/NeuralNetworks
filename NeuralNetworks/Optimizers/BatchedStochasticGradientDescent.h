@@ -1,17 +1,17 @@
 #pragma once
 
-#include <NeuralNetworks/Optimizers/BatchedOptimizer.h>
+#include <NeuralNetworks/Optimizers/BatchedGradientOptimizer.h>
 
 namespace nn
 {
 	template<MathDomain mathDomain>
-	class BatchedStochasticGradientDescent final: public BatchedOptimizer<mathDomain>
+	class BatchedStochasticGradientDescent final: public BatchedGradientOptimizer<mathDomain>
 	{
 	public:
-		BatchedStochasticGradientDescent(const typename BatchedOptimizer<mathDomain>::Layers& layers,
+		BatchedStochasticGradientDescent(const typename BatchedGradientOptimizer<mathDomain>::Layers& layers,
 				                         std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
 				                         std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept
-			: BatchedOptimizer<mathDomain>(layers, std::move(costFunction), std::move(miniBatchShuffler))
+			: BatchedGradientOptimizer<mathDomain>(layers, std::move(costFunction), std::move(miniBatchShuffler))
 		{
 			for (size_t l = 0; l < layers.size(); ++l)
 				_biasGradientCache.emplace_back(Vector<mathDomain>(static_cast<unsigned>(layers[l]->GetNumberOfOutputs()), 0.0));

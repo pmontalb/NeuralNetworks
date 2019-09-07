@@ -11,7 +11,7 @@
 
 #include <map>
 
-static constexpr MathDomain md = MathDomain::Float;
+static constexpr MathDomain md = MathDomain::Double;
 
 template<MathDomain T>
 nn::TrainingData<T> GetData(const std::string& fileType, const size_t nRowsInput, const size_t nRowsOutput, const size_t nCols)
@@ -75,16 +75,17 @@ int main()
 	data.hyperParameters.nEpochs = 5;
 	data.hyperParameters.miniBacthSize = 10;
 	data.hyperParameters.learningRate = 0.1;
-	data.hyperParameters.lambda = 1.0;
+	data.hyperParameters.lambda = 50.0;
 	
 	std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
-	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 100, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
-//	networkTopology.emplace_back(std::make_unique<nn::SoftMaxLayer<md>>(100, 10, nn::ZeroBiasWeightInitializer<md>()));
-	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(100, 10,  std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+//	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 100, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 100, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
+	networkTopology.emplace_back(std::make_unique<nn::SoftMaxLayer<md>>(100, 10, nn::ZeroBiasWeightInitializer<md>()));
+//	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(100, 10,  std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 	nn::Network<md> network(networkTopology);
 	
-//	nn::BatchedSgd<md> optimizer(networkTopology, std::make_unique<nn::CrossEntropyCostFunctionSoftMax<md>>(), std::make_unique<nn::RandomShuffler<md>>());
-	nn::BatchedSgd<md> optimizer(networkTopology, std::make_unique<nn::CrossEntropyCostFunctionSigmoid<md>>(), std::make_unique<nn::RandomShuffler<md>>());
+	nn::BatchedSgd<md> optimizer(networkTopology, std::make_unique<nn::CrossEntropyCostFunctionSoftMax<md>>(), std::make_unique<nn::IdentityShuffler<md>>());
+//	nn::BatchedSgd<md> optimizer(networkTopology, std::make_unique<nn::CrossEntropyCostFunctionSigmoid<md>>(), std::make_unique<nn::RandomShuffler<md>>());
 	network.Train(optimizer, data);
 	return 0;
 }

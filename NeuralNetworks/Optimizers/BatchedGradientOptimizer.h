@@ -1,18 +1,18 @@
 #pragma once
 
-#include <NeuralNetworks/Optimizers/Optimizer.h>
+#include <NeuralNetworks/Optimizers/GradientOptimizer.h>
 #include <NeuralNetworks/Optimizers/Shufflers/IShuffler.h>
 
 namespace nn
 {
 	template<MathDomain mathDomain>
-	class BatchedOptimizer: public Optimizer<mathDomain>
+	class BatchedGradientOptimizer: public GradientOptimizer<mathDomain>
 	{
 	public:
-		BatchedOptimizer(const typename Optimizer<mathDomain>::Layers& layers,
-		                 std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
-						 std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept
-				: Optimizer<mathDomain>(layers, std::move(costFunction)), _miniBatchShuffler(std::move(miniBatchShuffler))
+		BatchedGradientOptimizer(const typename GradientOptimizer<mathDomain>::Layers& layers,
+		                         std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
+		                         std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept
+				: GradientOptimizer<mathDomain>(layers, std::move(costFunction)), _miniBatchShuffler(std::move(miniBatchShuffler))
 		{
 		}
 		

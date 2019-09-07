@@ -21,8 +21,8 @@ namespace nn
 			double weightCost = 0.0;
 			for (const auto& layer: layers)
 			{
-				double norm = layer->GetWeight().EuclideanNorm();
-				weightCost += norm * norm;
+				const auto norm = layer->GetWeight().EuclideanNorm();
+				weightCost += static_cast<double>(norm * norm);
 			}
 			
 			return cost + 0.5 * lambda * weightCost;
