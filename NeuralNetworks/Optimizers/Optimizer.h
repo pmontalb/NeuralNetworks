@@ -1,0 +1,8 @@
+//
+// Created by raiden on 07/09/2019.
+//
+
+#ifndef NEURALNETWORKS_OPTIMIZER_H
+#define NEURALNETWORKS_OPTIMIZER_H
+
+#endif //NEURALNETWORKS_OPTIMIZER_H
