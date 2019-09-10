@@ -1,8 +1,12 @@
 #pragma once
 
-#include <NeuralNetworks/Initializers/IBiasWeightInitializer.h>
+#include <NeuralNetworks/Layers/Initializers/IBiasWeightInitializer.h>
 #include <NeuralNetworks/Layers/ILayer.h>
 #include <NeuralNetworks/Activations/IActivationFunction.h>
+#include <NeuralNetworks/ISerializable.h>
+
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace nn
 {
@@ -32,7 +36,52 @@ namespace nn
 			initializer.Set(_weight);
 		}
 		
-		virtual ~Layer() = default;
+		std::ostream& operator <<(std::ostream& stream) const noexcept override
+		{
+			const char* dataPath = getenv("DATA_PATH");
+			if (!dataPath)
+				return stream;
+			
+			stream << ToString(this->GetType()) << std::endl;
+			stream << _nInput << std::endl;
+			stream << _nOutput << std::endl;
+			stream << ToString(this->_activationFunction->GetType()) << std::endl;
+			
+			const std::string pidStr = std::to_string(getpid());
+			
+			static size_t id = 0;  // terrible hack...
+			
+			std::string weightFileName = dataPath;
+			weightFileName += "/weight.";
+			weightFileName += std::to_string(id) + ".";
+			weightFileName += pidStr;
+			_weight.ToBinaryFile(weightFileName, true);
+			stream << weightFileName << std::endl;
+			
+			std::string biasFileName = dataPath;
+			biasFileName += "/bias.";
+			biasFileName += std::to_string(id) + ".";
+			biasFileName += pidStr;
+			_bias.ToBinaryFile(biasFileName, true);
+			stream << biasFileName << std::endl;
+			
+			++id;
+			
+			return stream;
+		}
+		
+		std::istream& operator >>(std::istream& stream) noexcept override
+		{
+			std::string weightFileName;
+			std::getline(stream, weightFileName);
+			_weight.ReadFrom(cl::MatrixFromBinaryFile<MemorySpace::Device, mathDomain>(weightFileName, true));
+			
+			std::string biasFileName;
+			std::getline(stream, biasFileName);
+			_bias.ReadFrom(cl::VectorFromBinaryFile<MemorySpace::Device, mathDomain>(biasFileName, true));
+			
+			return stream;
+		}
 		
 		inline size_t GetNumberOfInputs() const noexcept override final { return _nInput; }
 		inline size_t GetNumberOfOutputs() const noexcept override final { return _nOutput; }

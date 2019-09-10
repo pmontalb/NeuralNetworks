@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NeuralNetworks/Initializers/IBiasWeightInitializer.h>
+#include <NeuralNetworks/Layers/Initializers/IBiasWeightInitializer.h>
 
 namespace nn
 {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <NeuralNetworks/Activations/IActivationFunction.h>
+#include <NeuralNetworks/NeuralNetworksManager.h>
 
 namespace nn
 {
@@ -8,6 +9,8 @@ namespace nn
 	class SigmoidActivationFunction final: public IActivationFunction<mathDomain>
 	{
 	public:
+		constexpr ActivationFunctionType GetType() const noexcept override { return ActivationFunctionType::Sigmoid; }
+		
 		void Evaluate(typename IActivationFunction<mathDomain>::Vector& output, const typename IActivationFunction<mathDomain>::Vector& input) const noexcept override
 		{
 			nn::detail::Sigmoid(output.GetBuffer(), input.GetBuffer());

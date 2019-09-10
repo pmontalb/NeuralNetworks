@@ -8,6 +8,8 @@ namespace nn
 	class InverseSquareRootLinearUnitActivationFunction final: public IActivationFunction<mathDomain>
 	{
 	public:
+		constexpr ActivationFunctionType GetType() const noexcept override { return ActivationFunctionType::InverseSquareRootLinearUnit; }
+		
 		void Evaluate(typename IActivationFunction<mathDomain>::Vector& output, const typename IActivationFunction<mathDomain>::Vector& input) const noexcept override
 		{
 			nn::detail::InverseSquareRootLinearUnit(output.GetBuffer(), input.GetBuffer());

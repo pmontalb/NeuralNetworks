@@ -14,10 +14,14 @@ namespace nn
 	class SoftMaxLayer final: public Layer<mathDomain>
 	{
 	public:
-		SoftMaxLayer(const unsigned nInput, const unsigned nOutput, IBiasWeightInitializer<mathDomain>&& initializer)
-				: Layer<mathDomain>(nInput, nOutput, std::make_unique<SoftMaxActivationFunction<mathDomain>>(), std::move(initializer))
+		SoftMaxLayer(const unsigned nInput, const unsigned nOutput,
+				     std::unique_ptr<IActivationFunction<mathDomain>>&&,  // blissfully ignored
+				     IBiasWeightInitializer<mathDomain>&& initializer)
+			: Layer<mathDomain>(nInput, nOutput, std::make_unique<SoftMaxActivationFunction<mathDomain>>(), std::move(initializer))
 		{
 		}
+		
+		constexpr LayerType GetType() const noexcept override { return LayerType::SoftMax; }
 		
 		void Evaluate(const typename Layer<mathDomain>::Vector& input, typename Layer<mathDomain>::Vector* const output) noexcept override
 		{

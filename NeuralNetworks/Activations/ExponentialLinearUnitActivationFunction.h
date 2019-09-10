@@ -8,6 +8,8 @@ namespace nn
 	class ExponentialLinearUnitActivationFunction final: public IActivationFunction<mathDomain>
 	{
 	public:
+		constexpr ActivationFunctionType GetType() const noexcept override { return ActivationFunctionType::ExponentialLinearUnity; }
+		
 		void Evaluate(typename IActivationFunction<mathDomain>::Vector& output, const typename IActivationFunction<mathDomain>::Vector& input) const noexcept override
 		{
 			nn::detail::ExponentialLinearUnit(output.GetBuffer(), input.GetBuffer());

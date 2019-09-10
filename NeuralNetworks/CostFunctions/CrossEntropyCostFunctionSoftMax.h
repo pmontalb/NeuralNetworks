@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NeuralNetworks/CostFunctions/CostFunction.h>
+#include <NeuralNetworks/CostFunctions/CrossEntropyCostFunction.h>
 #include <NeuralNetworksManager.h>
 
 namespace nn

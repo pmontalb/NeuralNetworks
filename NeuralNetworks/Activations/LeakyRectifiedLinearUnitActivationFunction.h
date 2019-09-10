@@ -8,6 +8,8 @@ namespace nn
 	class LeakyRectifiedLinearUnitActivationFunction final: public IActivationFunction<mathDomain>
 	{
 	public:
+		constexpr ActivationFunctionType GetType() const noexcept override { return ActivationFunctionType::LeakyRectifiedLinearUnit; }
+		
 		void Evaluate(typename IActivationFunction<mathDomain>::Vector& output, const typename IActivationFunction<mathDomain>::Vector& input) const noexcept override
 		{
 			nn::detail::LeakyRectifiedLinearUnit(output.GetBuffer(), input.GetBuffer());

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Types.h>
+#include <NeuralNetworks/Layers/LayerType.h>
+#include <NeuralNetworks/ISerializable.h>
 
 namespace nn
 {
@@ -8,14 +10,14 @@ namespace nn
 	template<MathDomain mathDomain> class ICostFunction;
 	
 	template<MathDomain mathDomain>
-	class ILayer
+	class ILayer: public ISerializable
 	{
 	public:
 		using Weight = cl::ColumnWiseMatrix<MemorySpace::Device, mathDomain>;
 		using Bias = cl::Vector<MemorySpace::Device, mathDomain>;
 		using Vector = Bias;
 		
-		virtual ~ILayer() = default;
+		virtual LayerType GetType() const noexcept = 0;
 		
 		virtual void Evaluate(const Vector& input, Vector* const output = nullptr) noexcept = 0;
 		virtual void Update(const typename ILayer<mathDomain>::Bias& biasGradient,

@@ -8,6 +8,8 @@ namespace nn
 	class BentIdentityActivationFunction final: public IActivationFunction<mathDomain>
 	{
 	public:
+		constexpr ActivationFunctionType GetType() const noexcept override { return ActivationFunctionType::BentIdentity; }
+		
 		void Evaluate(typename IActivationFunction<mathDomain>::Vector& output, const typename IActivationFunction<mathDomain>::Vector& input) const noexcept override
 		{
 			nn::detail::BentIdentity(output.GetBuffer(), input.GetBuffer());

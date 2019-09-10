@@ -9,6 +9,7 @@ namespace nn
 	{
 	public:
 		using Layer<mathDomain>::Layer;
+		constexpr LayerType GetType() const noexcept override { return LayerType::Dense; }
 		
 		void Evaluate(const typename Layer<mathDomain>::Vector& input, typename Layer<mathDomain>::Vector* const output) noexcept override
 		{

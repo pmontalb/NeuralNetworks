@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NeuralNetworks/Initializers/RandomBiasWeightInitializer.h>
+#include <NeuralNetworks/Layers/Initializers/RandomBiasWeightInitializer.h>
 
 namespace nn
 {
