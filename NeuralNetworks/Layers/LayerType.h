@@ -1,0 +1,8 @@
+//
+// Created by raiden on 09/09/2019.
+//
+
+#ifndef NEURALNETWORKS_LAYERTYPE_H
+#define NEURALNETWORKS_LAYERTYPE_H
+
+#endif //NEURALNETWORKS_LAYERTYPE_H
