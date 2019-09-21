@@ -1,11 +1,14 @@
 #pragma once
 
+#include <Tensor.h>
 #include <ColumnWiseMatrix.h>
+#include <Vector.h>
 
 #include <functional>
 
 namespace nn
 {
+	template <MathDomain mathDomain> using Tensor = cl::Tensor<MemorySpace::Device, mathDomain>;
 	template <MathDomain mathDomain> using Matrix = cl::ColumnWiseMatrix<MemorySpace::Device, mathDomain>;
 	template <MathDomain mathDomain> using Vector = cl::Vector<MemorySpace::Device, mathDomain>;
 	
@@ -34,14 +37,14 @@ namespace nn
 	struct HyperParameters
 	{
 		size_t nEpochs = 10;
-		size_t miniBacthSize = 100;
+		size_t miniBatchSize = 32;
 		
 		double learningRate = 0.1;
 		double lambda = 5.0;
 		
 		double GetAverageLearningRate() const noexcept
 		{
-			return learningRate / miniBacthSize;
+			return learningRate / miniBatchSize;
 		}
 	};
 	

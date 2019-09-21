@@ -71,17 +71,14 @@ namespace nn
 	{
 		Stopwatch sw(true);
 		
-		for (size_t col = 0; col < out.nCols(); ++col)
-		{
-			// use input for first layer
-			_layers.front()->Evaluate(*in.columns[col]);
-			
-			for (size_t l = 1; l < GetNumberOfLayers() - 1; ++l)
-				_layers[l]->Evaluate(_layers[l - 1]->GetActivation());
-			
-			// use output column for last layer!
-			_layers.back()->Evaluate(_layers[GetNumberOfLayers() - 2]->GetActivation(), out.columns[col].get());
-		}
+		// use input for first layer
+		_layers.front()->Evaluate(in);
+		
+		for (size_t l = 1; l < GetNumberOfLayers() - 1; ++l)
+			_layers[l]->Evaluate(_layers[l - 1]->GetActivation());
+		
+		// use output column for last layer!
+		_layers.back()->Evaluate(_layers[GetNumberOfLayers() - 2]->GetActivation(), &out);
 		
 		sw.Stop();
 		if (debugLevel > 1)
@@ -102,7 +99,11 @@ namespace nn
 		{
 			if (epoch > 0 && (i + 1) % epoch == 0)
 			{
-				const auto modelOutput = modelOutputCache.insert({ networkData.expectedOutput.nCols(), mat(networkData.expectedOutput.nRows(), networkData.expectedOutput.nCols()) }).first;
+				auto modelOutput = modelOutputCache.find(networkData.expectedOutput.nCols());
+				if (modelOutput == modelOutputCache.end())
+					modelOutput = modelOutputCache.emplace(std::piecewise_construct,
+							                               std::forward_as_tuple(networkData.expectedOutput.nCols()),
+							                               std::forward_as_tuple( mat(networkData.expectedOutput.nRows(), networkData.expectedOutput.nCols()))).first;
 				Evaluate(modelOutput->second, networkData.input, networkTrainingData.debugLevel);
 				const double accuracy = networkTrainingData.evaluator(modelOutput->second, networkData.expectedOutput);
 				

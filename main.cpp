@@ -13,7 +13,7 @@
 
 #include <map>
 
-static constexpr MathDomain md = MathDomain::Double;
+static constexpr MathDomain md = MathDomain::Float;
 
 template<MathDomain T>
 nn::TrainingData<T> GetData(const std::string& fileType, const size_t nRowsInput, const size_t nRowsOutput, const size_t nCols)
@@ -23,11 +23,11 @@ nn::TrainingData<T> GetData(const std::string& fileType, const size_t nRowsInput
 	
 	const std::string path = getenv("DATA_PATH");
 	
-	auto input = cl::MatrixFromBinaryFile<MemorySpace::Device, T>(path + "/Data/" + fileType + "Input" + extension.at(md) + ".npy", false, true);
+	auto input = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Input" + extension.at(md) + ".npy", false, true);
 	if (input.nRows() != nRowsInput) std::abort();
 	if (input.nCols() != nCols) std::abort();
 	
-	auto output = cl::MatrixFromBinaryFile<MemorySpace::Device, T>(path + "/Data/" + fileType + "Output" + extension.at(md) + ".npy", false, true);
+	auto output = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Output" + extension.at(md) + ".npy", false, true);
 	if (output.nRows() != nRowsOutput) std::abort();
 	if (output.nCols() != nCols) std::abort();
 	
@@ -54,7 +54,11 @@ int main()
 	std::map<unsigned, Cache> caches;
 	std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&caches](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 	{
-		const auto iter = caches.emplace(modelOutput.nCols(), Cache(modelOutput.nCols())).first;
+		auto iter = caches.find(modelOutput.nCols());
+		if (iter == caches.end())
+			iter = caches.emplace(std::piecewise_construct,
+			                      std::forward_as_tuple(modelOutput.nCols()),
+			                      std::forward_as_tuple(Cache(modelOutput.nCols()))).first;
 		
 		assert(modelOutput.nCols() == iter->second.cache1.size());
 		modelOutput.ColumnWiseArgAbsMaximum(iter->second.cache1);
@@ -75,19 +79,19 @@ int main()
 	data.nMaxEpochsWithNoScoreImprovements = 10;
 	
 	data.hyperParameters.nEpochs = 5;
-	data.hyperParameters.miniBacthSize = 10;
+	data.hyperParameters.miniBatchSize = 10;
 	data.hyperParameters.learningRate = 0.1;
 	data.hyperParameters.lambda = 50.0;
 	
 	std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
 //	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 100, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 100, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
-	networkTopology.emplace_back(std::make_unique<nn::SoftMaxLayer<md>>(100, 10, std::make_unique<nn::SoftMaxActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
-//	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(100, 10,  std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+//	networkTopology.emplace_back(std::make_unique<nn::SoftMaxLayer<md>>(100, 10, std::make_unique<nn::SoftMaxActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
+	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(100, 10,  std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 	nn::Network<md> network(std::move(networkTopology));
 	
-	nn::BatchedSgd<md> optimizer(network.GetLayers(), std::make_unique<nn::CrossEntropyCostFunctionSoftMax<md>>(), std::make_unique<nn::IdentityShuffler<md>>());
-//	nn::BatchedSgd<md> optimizer(network.GetLayers(), std::make_unique<nn::CrossEntropyCostFunctionSigmoid<md>>(), std::make_unique<nn::RandomShuffler<md>>());
+//	nn::BatchedSgd<md> optimizer(network.GetLayers(), data.hyperParameters.miniBatchSize, std::make_unique<nn::CrossEntropyCostFunctionSoftMax<md>>(), std::make_unique<nn::IdentityShuffler<md>>());
+	nn::BatchedSgd<md> optimizer(network.GetLayers(), data.hyperParameters.miniBatchSize, std::make_unique<nn::CrossEntropyCostFunctionSigmoid<md>>(), std::make_unique<nn::RandomShuffler<md>>());
 	network.Train(optimizer, data);
 	return 0;
 }

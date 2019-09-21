@@ -1,6 +1,8 @@
 #include <ObjectiveFunctions.cuh>
 #include <CubWrappers.cuh>
 #include <CuBlasWrappers.cuh>
+#include <MemoryManager.cuh>
+#include <BufferInitializer.cuh>
 
 template <typename T>
 DEVICE T __SigmoidWorker__(const T x)
@@ -256,7 +258,7 @@ static inline int RectifiedLinearUnitPrimeWorker(MemoryBuffer& z, const MemoryBu
 
 EXTERN_C
 {
-	EXPORT int _Sigmoid(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _Sigmoid(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -272,7 +274,7 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 	
-	EXPORT int _SigmoidPrime(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _SigmoidPrime(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -288,7 +290,7 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 
-	EXPORT int _HyperbolicTangent(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _HyperbolicTangent(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -304,7 +306,7 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 	
-	EXPORT int _HyperbolicTangentPrime(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _HyperbolicTangentPrime(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -320,27 +322,27 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 
-	EXPORT int _RectifiedLinearUnit(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _RectifiedLinearUnit(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		return RectifiedLinearUnitWorker(z, x, 0.0);
 	}
 
-	EXPORT int _RectifiedLinearUnitPrime(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _RectifiedLinearUnitPrime(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		return RectifiedLinearUnitPrimeWorker(z, x, 0.0);
 	}
 
-	EXPORT int _LeakyRectifiedLinearUnit(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _LeakyRectifiedLinearUnit(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		return RectifiedLinearUnitWorker(z, x, 0.01);
 	}
 	
-	EXPORT int _LeakyRectifiedLinearUnitPrime(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _LeakyRectifiedLinearUnitPrime(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		return RectifiedLinearUnitPrimeWorker(z, x, 0.01);
 	}
 
-	EXPORT int _InverseSquareRootLinearUnit(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _InverseSquareRootLinearUnit(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -356,7 +358,7 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 	
-	EXPORT int _InverseSquareRootLinearUnitPrime(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _InverseSquareRootLinearUnitPrime(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -372,7 +374,7 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 
-	EXPORT int _ExponentialLinearUnit(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _ExponentialLinearUnit(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -388,7 +390,7 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 	
-	EXPORT int _ExponentialLinearUnitPrime(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _ExponentialLinearUnitPrime(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -404,7 +406,7 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 
-	EXPORT int _BentIdentity(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _BentIdentity(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -420,7 +422,7 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 	
-	EXPORT int _BentIdentityPrime(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _BentIdentityPrime(MemoryBuffer& z, const MemoryBuffer& x)
 	{
 		switch (z.mathDomain)
 		{
@@ -436,7 +438,7 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 
-	EXPORT int _SoftMax(MemoryBuffer z, const MemoryBuffer x)
+	EXPORT int _SoftMax(MemoryTile& z, const MemoryTile& x, MemoryBuffer& columnWiseSumCache, MemoryBuffer& onesCache)
 	{
 		switch (z.mathDomain)
 		{
@@ -450,14 +452,35 @@ EXTERN_C
 				return CudaKernelException::_NotImplementedException;
 		}
 		
-		double sum = 0.0;
-		_Sum(sum, z);
-		_Scale(z, 1.0 / sum);
+		if (columnWiseSumCache.size != z.nCols)
+		{
+			if (columnWiseSumCache.pointer != 0)
+				_Free(columnWiseSumCache);
+			columnWiseSumCache.pointer = 0;
+		}
+		
+		if (columnWiseSumCache.pointer == 0)
+		{
+			columnWiseSumCache = MemoryBuffer(0, z.nCols, z.memorySpace, z.mathDomain);
+			_Alloc(columnWiseSumCache);
+		}
+		
+		int err = _RowWiseSum(columnWiseSumCache, z, onesCache, MatrixOperation::Transpose);
+		if (err)
+			return err;
+		
+		err = _Reciprocal(columnWiseSumCache);
+		if (err)
+			return err;
+		
+		err = _ScaleColumns(z, columnWiseSumCache);
+		if (err)
+			return err;
 		
 		return cudaGetLastError();
 	}
 
-	EXPORT int _CrossEntropyCostFunctionSigmoid(double& cost, MemoryBuffer x, const MemoryBuffer y)
+	EXPORT int _CrossEntropyCostFunctionSigmoid(double& cost, MemoryBuffer& x, const MemoryBuffer& y)
 	{
 		switch (x.mathDomain)
 		{
@@ -475,7 +498,7 @@ EXTERN_C
 		return _Sum(cost, x);
 	}
 
-	EXPORT int _CrossEntropyCostFunctionSoftMax(double& cost, MemoryBuffer x, const MemoryBuffer y)
+	EXPORT int _CrossEntropyCostFunctionSoftMax(double& cost, MemoryBuffer& x, const MemoryBuffer& y)
 	{
 		switch (x.mathDomain)
 		{

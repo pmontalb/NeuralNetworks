@@ -87,31 +87,31 @@
 
 #pragma endregion
 
-__CREATE_FUNCTION_2_ARG(Sigmoid, MemoryBuffer, z, MemoryBuffer, x);
-__CREATE_FUNCTION_2_ARG(SigmoidPrime, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(Sigmoid, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(SigmoidPrime, MemoryBuffer&, z, const MemoryBuffer&, x);
 
-__CREATE_FUNCTION_2_ARG(HyperbolicTangent, MemoryBuffer, z, MemoryBuffer, x);
-__CREATE_FUNCTION_2_ARG(HyperbolicTangentPrime, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(HyperbolicTangent, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(HyperbolicTangentPrime, MemoryBuffer&, z, const MemoryBuffer&, x);
 
-__CREATE_FUNCTION_2_ARG(RectifiedLinearUnit, MemoryBuffer, z, MemoryBuffer, x);
-__CREATE_FUNCTION_2_ARG(RectifiedLinearUnitPrime, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(RectifiedLinearUnit, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(RectifiedLinearUnitPrime, MemoryBuffer&, z, const MemoryBuffer&, x);
 
-__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnit, MemoryBuffer, z, MemoryBuffer, x);
-__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnitPrime, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnit, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnitPrime, MemoryBuffer&, z, const MemoryBuffer&, x);
 
-__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnit, MemoryBuffer, z, MemoryBuffer, x);
-__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnitPrime, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnit, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnitPrime, MemoryBuffer&, z, const MemoryBuffer&, x);
 
-__CREATE_FUNCTION_2_ARG(ExponentialLinearUnit, MemoryBuffer, z, MemoryBuffer, x);
-__CREATE_FUNCTION_2_ARG(ExponentialLinearUnitPrime, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(ExponentialLinearUnit, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(ExponentialLinearUnitPrime, MemoryBuffer&, z, const MemoryBuffer&, x);
 
-__CREATE_FUNCTION_2_ARG(BentIdentity, MemoryBuffer, z, MemoryBuffer, x);
-__CREATE_FUNCTION_2_ARG(BentIdentityPrime, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_2_ARG(BentIdentity, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(BentIdentityPrime, MemoryBuffer&, z, const MemoryBuffer&, x);
 
-__CREATE_FUNCTION_2_ARG(SoftMax, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_4_ARG(SoftMax, MemoryBuffer&, z, const MemoryBuffer&, x, MemoryBuffer&, columnWiseCache, MemoryBuffer&, onesCache);
 
-__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSigmoid, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
-__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSoftMax, double&, cost, MemoryBuffer, z, MemoryBuffer, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSigmoid, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSoftMax, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
 
 #pragma region Undef macros
 

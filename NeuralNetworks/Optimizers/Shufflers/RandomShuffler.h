@@ -12,7 +12,7 @@ namespace nn
 		using IShuffler<mathDomain>::IShuffler;
 		void Shuffle(typename IShuffler<mathDomain>::Matrix& input, typename IShuffler<mathDomain>::Matrix& expectedOutput) const noexcept override
 		{
-			cl::RandomShuffleColumnsPair(input, expectedOutput);
+			IShuffler<mathDomain>::Matrix::RandomShuffleColumnsPair(input, expectedOutput);
 		}
 	};
 }

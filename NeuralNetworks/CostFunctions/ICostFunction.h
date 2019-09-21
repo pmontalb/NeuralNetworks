@@ -16,6 +16,6 @@ namespace nn
 		
 		virtual ~ICostFunction() = default;
 		virtual double Evaluate(Matrix& activations, const Matrix& expectedOutput, const std::vector<std::unique_ptr<ILayer<mathDomain>>>& layers, const double lambda) const noexcept = 0;
-		virtual void EvaluateGradient(Vector& expected, const Vector& actual, const Vector& activationDerivative) const noexcept = 0;
+		virtual void EvaluateGradient(Matrix& expected, const Matrix& actual, const Matrix& activationDerivative) const noexcept = 0;
 	};
 }

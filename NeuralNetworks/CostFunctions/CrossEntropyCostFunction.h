@@ -11,9 +11,9 @@ namespace nn
 	public:
 		using CostFunction<mathDomain>::CostFunction;
 		
-		void EvaluateGradient(typename ICostFunction<mathDomain>::Vector& expected,
-		                      const typename ICostFunction<mathDomain>::Vector& actual,
-		                      const typename ICostFunction<mathDomain>::Vector&) const noexcept override final
+		void EvaluateGradient(typename ICostFunction<mathDomain>::Matrix& expected,
+		                      const typename ICostFunction<mathDomain>::Matrix& actual,
+		                      const typename ICostFunction<mathDomain>::Matrix&) const noexcept override final
 		{
 			expected -= actual;
 		}

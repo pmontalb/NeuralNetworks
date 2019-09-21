@@ -16,10 +16,12 @@ namespace nn
 		using Weight = cl::ColumnWiseMatrix<MemorySpace::Device, mathDomain>;
 		using Bias = cl::Vector<MemorySpace::Device, mathDomain>;
 		using Vector = Bias;
+		using Matrix = Weight;
 		
 		virtual LayerType GetType() const noexcept = 0;
 		
-		virtual void Evaluate(const Vector& input, Vector* const output = nullptr) noexcept = 0;
+		virtual void Evaluate(const Matrix& input, Matrix* const output = nullptr) noexcept = 0;
+		
 		virtual void Update(const typename ILayer<mathDomain>::Bias& biasGradient,
 		                    const typename ILayer<mathDomain>::Weight& weightGradient,
 		                    const double averageLearningRate,
@@ -28,8 +30,8 @@ namespace nn
 		
 		virtual size_t GetNumberOfInputs() const noexcept = 0;
 		virtual size_t GetNumberOfOutputs() const noexcept = 0;
-		virtual Vector& GetActivation() noexcept = 0;
-		virtual const Vector& GetActivationGradient() const noexcept = 0;
+		virtual Matrix& GetActivation() noexcept = 0;
+		virtual const Matrix& GetActivationGradient() const noexcept = 0;
 		virtual const Weight& GetWeight() const noexcept = 0;
 		virtual const Bias& GetBias() const noexcept = 0;
 		

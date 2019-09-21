@@ -10,10 +10,11 @@ namespace nn
 	{
 	public:
 		using Vector = cl::Vector<MemorySpace::Device, mathDomain>;
+		using Matrix = cl::ColumnWiseMatrix<MemorySpace::Device, mathDomain>;
 		virtual ActivationFunctionType GetType() const noexcept = 0;
 		
 		virtual ~IActivationFunction() = default;
-		virtual void Evaluate(Vector& output, const Vector& input) const noexcept = 0;
-		virtual void EvaluateGradient(Vector& output, const Vector& input) const noexcept = 0;
+		virtual void Evaluate(Matrix& output, const Matrix& input) const noexcept = 0;
+		virtual void EvaluateGradient(Matrix& output, const Matrix& input) const noexcept = 0;
 	};
 }

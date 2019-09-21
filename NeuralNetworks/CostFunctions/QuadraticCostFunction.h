@@ -19,9 +19,9 @@ namespace nn
 			return norm2;
 		}
 		
-		void EvaluateGradient(typename ICostFunction<mathDomain>::Vector& expected,
-							    const typename ICostFunction<mathDomain>::Vector& actual,
-							    const typename ICostFunction<mathDomain>::Vector& activationDerivative) const noexcept override
+		void EvaluateGradient(typename ICostFunction<mathDomain>::Matrix& expected,
+							    const typename ICostFunction<mathDomain>::Matrix& actual,
+							    const typename ICostFunction<mathDomain>::Matrix& activationDerivative) const noexcept override
 		{
 			expected -= actual;
 			expected %= activationDerivative;

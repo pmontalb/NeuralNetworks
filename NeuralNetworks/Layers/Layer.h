@@ -25,10 +25,6 @@ namespace nn
 			  
 			  _bias(nOutput, 0.0),
 			  _weight(nOutput, nInput, 0.0),
-			  
-			  _zVector(nOutput, 0.0),
-			  _activation(nOutput, 0.0),
-			  _activationGradient(nOutput, 0.0),
 			
 			  _activationFunction(std::move(activationFunction))
 		{
@@ -74,11 +70,11 @@ namespace nn
 		{
 			std::string weightFileName;
 			std::getline(stream, weightFileName);
-			_weight.ReadFrom(cl::MatrixFromBinaryFile<MemorySpace::Device, mathDomain>(weightFileName, true));
+			_weight.ReadFrom(cl::ColumnWiseMatrix<MemorySpace::Device, mathDomain>::MatrixFromBinaryFile(weightFileName, true));
 			
 			std::string biasFileName;
 			std::getline(stream, biasFileName);
-			_bias.ReadFrom(cl::VectorFromBinaryFile<MemorySpace::Device, mathDomain>(biasFileName, true));
+			_bias.ReadFrom(cl::Vector<MemorySpace::Device, mathDomain>::VectorFromBinaryFile(biasFileName, true));
 			
 			return stream;
 		}
@@ -97,8 +93,8 @@ namespace nn
 		
 		std::unique_ptr<ICostFunction<mathDomain>> GetCrossEntropyCostFunction() const noexcept override { return nullptr; }
 		
-		inline typename ILayer<mathDomain>::Vector& GetActivation() noexcept override final { return _activation; }
-		inline const typename ILayer<mathDomain>::Vector& GetActivationGradient() const noexcept override final { return _activationGradient; }
+		inline typename ILayer<mathDomain>::Matrix& GetActivation() noexcept override final { return *_lastActivation; }
+		inline const typename ILayer<mathDomain>::Matrix& GetActivationGradient() const noexcept override final { return *_lastActivationGradient; }
 		inline const typename ILayer<mathDomain>::Weight& GetWeight() const noexcept override final { return _weight; }
 		inline const typename ILayer<mathDomain>::Bias& GetBias() const noexcept override final { return _bias; }
 		
@@ -109,9 +105,12 @@ namespace nn
 		typename ILayer<mathDomain>::Bias _bias;
 		typename ILayer<mathDomain>::Weight _weight;
 		
-		typename ILayer<mathDomain>::Vector _zVector; // stores weight * input + bias
-		typename ILayer<mathDomain>::Vector _activation;
-		typename ILayer<mathDomain>::Vector _activationGradient;  // TODO: move it into the optimizers?
+		std::unordered_map<size_t, typename ILayer<mathDomain>::Matrix> _zMatrix {}; // stores weight * input + bias
+		std::unordered_map<size_t, typename ILayer<mathDomain>::Matrix> _batchedActivation {};
+		std::unordered_map<size_t, typename ILayer<mathDomain>::Matrix> _batchedActivationGradient {}; // TODO: move it into the optimizers?
+		
+		typename ILayer<mathDomain>::Matrix* _lastActivation = nullptr;
+		typename ILayer<mathDomain>::Matrix* _lastActivationGradient = nullptr;
 		
 		std::unique_ptr<IActivationFunction<mathDomain>> _activationFunction;
 	};
