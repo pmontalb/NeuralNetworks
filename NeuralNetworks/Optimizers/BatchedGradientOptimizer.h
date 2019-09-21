@@ -10,9 +10,10 @@ namespace nn
 	{
 	public:
 		BatchedGradientOptimizer(const typename GradientOptimizer<mathDomain>::Layers& layers,
+		                         const size_t miniBatchSize,
 		                         std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
 		                         std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept
-				: GradientOptimizer<mathDomain>(layers, std::move(costFunction)), _miniBatchShuffler(std::move(miniBatchShuffler))
+				: GradientOptimizer<mathDomain>(layers, std::move(costFunction)), _miniBatchSize(miniBatchSize), _miniBatchShuffler(std::move(miniBatchShuffler))
 		{
 		}
 		
@@ -24,11 +25,12 @@ namespace nn
 			MiniBatchData<mathDomain> batchData(networkTrainingData);
 			Stopwatch sw;
 			
-			size_t nMiniBatchIterations = networkTrainingData.trainingData.GetNumberOfSamples() / networkTrainingData.hyperParameters.miniBacthSize;
+			const size_t nMiniBatchIterations = networkTrainingData.trainingData.GetNumberOfSamples() / networkTrainingData.hyperParameters.miniBatchSize;
 			for (size_t n = 0; n < nMiniBatchIterations; ++n)
 			{
 				batchData.startIndex = batchData.endIndex;
-				batchData.endIndex += networkTrainingData.hyperParameters.miniBacthSize;
+				batchData.endIndex += networkTrainingData.hyperParameters.miniBatchSize;
+				batchData.endIndex = std::min(networkTrainingData.trainingData.GetNumberOfSamples(), batchData.endIndex);
 				
 				sw.Start();
 				
@@ -62,6 +64,7 @@ namespace nn
 		
 	
 	protected:
+		const size_t _miniBatchSize;
 		const std::unique_ptr<IShuffler<mathDomain>> _miniBatchShuffler;
 	};
 }
