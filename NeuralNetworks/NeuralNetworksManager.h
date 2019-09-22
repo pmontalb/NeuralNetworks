@@ -88,7 +88,7 @@
 #pragma endregion
 
 __CREATE_FUNCTION_2_ARG(Sigmoid, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_2_ARG(SigmoidPrime, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_3_ARG(SigmoidPrime, MemoryBuffer&, z, const MemoryBuffer&, x, const MemoryBuffer&, sigmoid);
 
 __CREATE_FUNCTION_2_ARG(HyperbolicTangent, MemoryBuffer&, z, const MemoryBuffer&, x);
 __CREATE_FUNCTION_2_ARG(HyperbolicTangentPrime, MemoryBuffer&, z, const MemoryBuffer&, x);
@@ -110,8 +110,8 @@ __CREATE_FUNCTION_2_ARG(BentIdentityPrime, MemoryBuffer&, z, const MemoryBuffer&
 
 __CREATE_FUNCTION_4_ARG(SoftMax, MemoryBuffer&, z, const MemoryBuffer&, x, MemoryBuffer&, columnWiseCache, MemoryBuffer&, onesCache);
 
-__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSigmoid, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSoftMax, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunction, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_3_ARG(LogLikelihoodCostFunction, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
 
 #pragma region Undef macros
 

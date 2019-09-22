@@ -2,7 +2,7 @@
 
 #include <NeuralNetworks/Layers/DenseLayer.h>
 #include <NeuralNetworks/Activations/SoftMaxActivationFunction.h>
-#include <NeuralNetworks/CostFunctions/CrossEntropyCostFunctionSoftMax.h>
+#include <NeuralNetworks/CostFunctions/LogLikelihoodCostFunction.h>
 
 #include <memory>
 
@@ -23,9 +23,10 @@ namespace nn
 		
 		constexpr LayerType GetType() const noexcept override { return LayerType::SoftMax; }
 		
-		std::unique_ptr<ICostFunction<mathDomain>> GetCrossEntropyCostFunction() const noexcept override
+		CostFunctionType GetBestCostFunctionType() const noexcept override { return CostFunctionType::LogLikelihood; }
+		std::unique_ptr<ICostFunction<mathDomain>> GetBestCostFunction() const noexcept override
 		{
-			return std::make_unique<CrossEntropyCostFunctionSoftMax<mathDomain>>();
+			return std::make_unique<LogLikelihoodCostFunction<mathDomain>>();
 		}
 	};
 }

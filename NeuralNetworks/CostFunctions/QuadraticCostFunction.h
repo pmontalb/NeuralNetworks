@@ -10,6 +10,8 @@ namespace nn
 	public:
 		using CostFunction<mathDomain>::CostFunction;
 		
+		constexpr CostFunctionType GetType() const noexcept override { return CostFunctionType::Quadratic; }
+		
 		double EvaluateWorker(typename ICostFunction<mathDomain>::Matrix& expected, const typename ICostFunction<mathDomain>::Matrix& actual) const noexcept override
 		{
 			expected -= actual;

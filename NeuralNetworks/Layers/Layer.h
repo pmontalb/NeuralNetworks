@@ -91,7 +91,8 @@ namespace nn
 			_weight.AddEqualMatrix(weightGradient, MatrixOperation::None, MatrixOperation::None, regularizationFactor, -averageLearningRate);
 		}
 		
-		std::unique_ptr<ICostFunction<mathDomain>> GetCrossEntropyCostFunction() const noexcept override { return nullptr; }
+		CostFunctionType GetBestCostFunctionType() const noexcept override { return _activationFunction->GetBestCostFunction(); }
+		std::unique_ptr<ICostFunction<mathDomain>> GetBestCostFunction() const noexcept override { return nullptr; }
 		
 		inline typename ILayer<mathDomain>::Matrix& GetActivation() noexcept override final { return *_lastActivation; }
 		inline const typename ILayer<mathDomain>::Matrix& GetActivationGradient() const noexcept override final { return *_lastActivationGradient; }

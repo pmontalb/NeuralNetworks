@@ -3,6 +3,7 @@
 #include <Types.h>
 #include <NeuralNetworks/Layers/LayerType.h>
 #include <NeuralNetworks/ISerializable.h>
+#include <NeuralNetworks/CostFunctions/CostFunctionType.h>
 
 namespace nn
 {
@@ -20,13 +21,14 @@ namespace nn
 		
 		virtual LayerType GetType() const noexcept = 0;
 		
-		virtual void Evaluate(const Matrix& input, Matrix* const output = nullptr) noexcept = 0;
+		virtual void Evaluate(const Matrix& input, const bool needGradient, Matrix* const output = nullptr) noexcept = 0;
 		
 		virtual void Update(const typename ILayer<mathDomain>::Bias& biasGradient,
 		                    const typename ILayer<mathDomain>::Weight& weightGradient,
 		                    const double averageLearningRate,
 		                    const double regularizationFactor = 0.0) noexcept = 0;
-		virtual std::unique_ptr<ICostFunction<mathDomain>> GetCrossEntropyCostFunction() const noexcept = 0;
+		virtual CostFunctionType GetBestCostFunctionType() const noexcept = 0;
+		virtual std::unique_ptr<ICostFunction<mathDomain>> GetBestCostFunction() const noexcept = 0;
 		
 		virtual size_t GetNumberOfInputs() const noexcept = 0;
 		virtual size_t GetNumberOfOutputs() const noexcept = 0;

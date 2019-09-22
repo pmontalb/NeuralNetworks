@@ -20,12 +20,13 @@ EXTERN_C
 	/**
 	* Sigmoid'(x) = Sigmoid(x) * (1.0 - Sigmoid(x))
 	*/
-	EXPORT int _SigmoidPrime(MemoryBuffer& z, const MemoryBuffer& x);
-	inline EXPORT int _SigmoidPrimeRaw(const ptr_t z, const ptr_t x, const unsigned size, const MemorySpace memorySpace, const MathDomain mathDomain)
+	EXPORT int _SigmoidPrime(MemoryBuffer& z, const MemoryBuffer& x, const MemoryBuffer& sigmoid);
+	inline EXPORT int _SigmoidPrimeRaw(const ptr_t z, const ptr_t x, const ptr_t sigmoid, const unsigned size, const MemorySpace memorySpace, const MathDomain mathDomain)
 	{
 		MemoryBuffer _z(z, size, memorySpace, mathDomain);
 		MemoryBuffer _x(x, size, memorySpace, mathDomain);
-		return _SigmoidPrime(_z, _x);
+		MemoryBuffer _sigmoid(sigmoid, size, memorySpace, mathDomain);
+		return _SigmoidPrime(_z, _x, _sigmoid);
 	}
 
 	/**
@@ -177,24 +178,24 @@ EXTERN_C
 	* sum(-x * log(y) - (1 - y) * log(1-x))
 	* NB: overrides x
 	*/
-	EXPORT int _CrossEntropyCostFunctionSigmoid(double& cost, MemoryBuffer& x, const MemoryBuffer& y);
-	inline EXPORT int _CrossEntropyCostFunctionSigmoidRaw(double& cost, const ptr_t x, const ptr_t y, const unsigned size, const MemorySpace memorySpace, const MathDomain mathDomain)
+	EXPORT int _CrossEntropyCostFunction(double& cost, MemoryBuffer& x, const MemoryBuffer& y);
+	inline EXPORT int _CrossEntropyCostFunctionSigmoid(double& cost, const ptr_t x, const ptr_t y, const unsigned size, const MemorySpace memorySpace, const MathDomain mathDomain)
 	{
 		MemoryBuffer _x(x, size, memorySpace, mathDomain);
 		MemoryBuffer _y(y, size, memorySpace, mathDomain);
-		return _CrossEntropyCostFunctionSigmoid(cost, _x, _y);
+		return _CrossEntropyCostFunction(cost, _x, _y);
 	}
 
 	/**
 	* sum(-x * log(y))
 	* NB: overrides x
 	*/
-	EXPORT int _CrossEntropyCostFunctionSoftMax(double& cost, MemoryBuffer& x, const MemoryBuffer& y);
-	inline EXPORT int _CrossEntropyCostFunctionSoftMaxRaw(double& cost, const ptr_t x, const ptr_t y, const unsigned size, const MemorySpace memorySpace, const MathDomain mathDomain)
+	EXPORT int LogLikelihoodCostFunction(double& cost, MemoryBuffer& x, const MemoryBuffer& y);
+	inline EXPORT int _LogLikelihoodCostFunctionRaw(double& cost, const ptr_t x, const ptr_t y, const unsigned size, const MemorySpace memorySpace, const MathDomain mathDomain)
 	{
 		MemoryBuffer _x(x, size, memorySpace, mathDomain);
 		MemoryBuffer _y(y, size, memorySpace, mathDomain);
-		return _CrossEntropyCostFunctionSoftMax(cost, _x, _y);
+		return LogLikelihoodCostFunction(cost, _x, _y);
 	}
 }
 
@@ -256,7 +257,7 @@ template <typename T>
 GLOBAL void __SoftMax__(T* RESTRICT z, const T* RESTRICT x, const unsigned sz);
 
 template <typename T>
-GLOBAL void __CrossEntropyCostFunctionSigmoid__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz);
+GLOBAL void __CrossEntropyCostFunction__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz);
 
 template <typename T>
-GLOBAL void __CrossEntropyCostFunctionSoftMax__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz);
+GLOBAL void __LogLikelihoodCostFunction__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz);

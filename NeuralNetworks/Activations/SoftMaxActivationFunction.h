@@ -1,6 +1,7 @@
 #pragma once
 
 #include <NeuralNetworks/Activations/IActivationFunction.h>
+#include <NeuralNetworks/NeuralNetworksManager.h>
 
 namespace nn
 {
@@ -9,6 +10,7 @@ namespace nn
 	{
 	public:
 		constexpr ActivationFunctionType GetType() const noexcept override { return ActivationFunctionType::SoftMax; }
+		constexpr CostFunctionType GetBestCostFunction() const noexcept override { return CostFunctionType::LogLikelihood; }
 		
 		void Evaluate(typename IActivationFunction<mathDomain>::Matrix& output, const typename IActivationFunction<mathDomain>::Matrix& input) const noexcept override
 		{
@@ -27,7 +29,7 @@ namespace nn
 			nn::detail::SoftMax(output.GetBuffer(), input.GetBuffer(), columnSumCacheIter->second.GetBuffer(), onesCacheIter->second.GetBuffer());
 		}
 		
-		void EvaluateGradient(typename IActivationFunction<mathDomain>::Matrix&, const typename IActivationFunction<mathDomain>::Matrix&) const noexcept override
+		void EvaluateGradient(typename IActivationFunction<mathDomain>::Matrix&, const typename IActivationFunction<mathDomain>::Matrix&, const typename IActivationFunction<mathDomain>::Matrix&) const noexcept override
 		{
 			// doesn't really need to compute the gradient, as this is gonna be used with the cross entropy function only!
 		}

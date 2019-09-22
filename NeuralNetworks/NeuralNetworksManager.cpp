@@ -141,7 +141,7 @@
 #pragma endregion
 
 __CREATE_FUNCTION_2_ARG(Sigmoid, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_2_ARG(SigmoidPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_3_ARG(SigmoidPrime, CudaKernelExceptionFactory,MemoryBuffer&, z, const MemoryBuffer&, x, const MemoryBuffer&, sigmoid);
 
 __CREATE_FUNCTION_2_ARG(HyperbolicTangent, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
 __CREATE_FUNCTION_2_ARG(HyperbolicTangentPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
@@ -163,8 +163,8 @@ __CREATE_FUNCTION_2_ARG(BentIdentityPrime, CudaKernelExceptionFactory, MemoryBuf
 
 __CREATE_FUNCTION_4_ARG(SoftMax, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x, MemoryBuffer&, columnWiseCache, MemoryBuffer&, onesCache);
 
-__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSigmoid, CudaKernelExceptionFactory, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunctionSoftMax, CudaKernelExceptionFactory, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunction, CudaKernelExceptionFactory, double&, cost, MemoryBuffer&, x, const MemoryBuffer&, y);
+__CREATE_FUNCTION_3_ARG(LogLikelihoodCostFunction, CudaKernelExceptionFactory, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
 
 #pragma region Undef macros
 

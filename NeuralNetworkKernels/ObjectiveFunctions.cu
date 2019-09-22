@@ -196,7 +196,7 @@ GLOBAL void __SoftMax__(T* RESTRICT z, const T* RESTRICT x, const unsigned sz)
 }
 
 template <typename T>
-GLOBAL void __CrossEntropyCostFunctionSigmoid__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz)
+GLOBAL void __CrossEntropyCostFunction__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz)
 {
 	CUDA_FUNCTION_PROLOGUE;
 	
@@ -210,7 +210,7 @@ GLOBAL void __CrossEntropyCostFunctionSigmoid__(T* RESTRICT x, const T* RESTRICT
 }
 
 template <typename T>
-GLOBAL void __CrossEntropyCostFunctionSoftMax__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz)
+GLOBAL void __LogLikelihoodCostFunction__(T* RESTRICT x, const T* RESTRICT y, const unsigned sz)
 {
 	CUDA_FUNCTION_PROLOGUE;
 	
@@ -274,19 +274,24 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 	
-	EXPORT int _SigmoidPrime(MemoryBuffer& z, const MemoryBuffer& x)
+	EXPORT int _SigmoidPrime(MemoryBuffer& z, const MemoryBuffer& x, const MemoryBuffer& sigmoid)
 	{
-		switch (z.mathDomain)
-		{
-			case MathDomain::Float:
-				CUDA_CALL_SINGLE(__SigmoidPrime__<float>, (float*) z.pointer, (float*) x.pointer, z.size);
-				break;
-			case MathDomain::Double:
-				CUDA_CALL_DOUBLE(__SigmoidPrime__<double>, (double*) z.pointer, (double*) x.pointer, z.size);
-				break;
-			default:
-				return CudaKernelException::_NotImplementedException;
-		}
+		#ifdef REUSE_SIGMOID_OUTPUT
+			_ElementwiseProduct(z, sigmoid, sigmoid, -1.0);
+			_AddEqual(z, sigmoid);
+		#else
+			switch (z.mathDomain)
+			{
+				case MathDomain::Float:
+					CUDA_CALL_SINGLE(__SigmoidPrime__<float>, (float*) z.pointer, (float*) x.pointer, z.size);
+					break;
+				case MathDomain::Double:
+					CUDA_CALL_DOUBLE(__SigmoidPrime__<double>, (double*) z.pointer, (double*) x.pointer, z.size);
+					break;
+				default:
+					return CudaKernelException::_NotImplementedException;
+			}
+		#endif
 		return cudaGetLastError();
 	}
 
@@ -480,15 +485,15 @@ EXTERN_C
 		return cudaGetLastError();
 	}
 
-	EXPORT int _CrossEntropyCostFunctionSigmoid(double& cost, MemoryBuffer& x, const MemoryBuffer& y)
+	EXPORT int _CrossEntropyCostFunction(double& cost, MemoryBuffer& x, const MemoryBuffer& y)
 	{
 		switch (x.mathDomain)
 		{
 			case MathDomain::Float:
-				CUDA_CALL_SINGLE(__CrossEntropyCostFunctionSigmoid__<float>, (float*)x.pointer, (float*)y.pointer, x.size);
+				CUDA_CALL_SINGLE(__CrossEntropyCostFunction__<float>, (float*)x.pointer, (float*)y.pointer, x.size);
 				break;
 			case MathDomain::Double:
-				CUDA_CALL_DOUBLE(__CrossEntropyCostFunctionSigmoid__<double>, (double*)x.pointer, (double*)y.pointer, x.size);
+				CUDA_CALL_DOUBLE(__CrossEntropyCostFunction__<double>, (double*)x.pointer, (double*)y.pointer, x.size);
 				break;
 			default:
 				return CudaKernelException::_NotImplementedException;
@@ -498,15 +503,15 @@ EXTERN_C
 		return _Sum(cost, x);
 	}
 
-	EXPORT int _CrossEntropyCostFunctionSoftMax(double& cost, MemoryBuffer& x, const MemoryBuffer& y)
+	EXPORT int _LogLikelihoodCostFunction(double& cost, MemoryBuffer& x, const MemoryBuffer& y)
 	{
 		switch (x.mathDomain)
 		{
 			case MathDomain::Float:
-				CUDA_CALL_SINGLE(__CrossEntropyCostFunctionSoftMax__<float>, (float*)x.pointer, (float*)y.pointer, x.size);
+				CUDA_CALL_SINGLE(__LogLikelihoodCostFunction__<float>, (float*)x.pointer, (float*)y.pointer, x.size);
 				break;
 			case MathDomain::Double:
-				CUDA_CALL_DOUBLE(__CrossEntropyCostFunctionSoftMax__<double>, (double*)x.pointer, (double*)y.pointer, x.size);
+				CUDA_CALL_DOUBLE(__LogLikelihoodCostFunction__<double>, (double*)x.pointer, (double*)y.pointer, x.size);
 				break;
 			default:
 				return CudaKernelException::_NotImplementedException;

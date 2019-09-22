@@ -1,68 +1,33 @@
 
 #include <NeuralNetworks/Layers/Initializers/SmallVarianceRandomBiasWeightInitializer.h>
-#include <NeuralNetworks/CostFunctions/CrossEntropyCostFunctionSigmoid.h>
+#include <NeuralNetworks/CostFunctions/CrossEntropyCostFunction.h>
 #include <NeuralNetworks/Optimizers/IOptimizer.h>
 
 namespace nn
 {
 	template<MathDomain mathDomain>
-	Network<mathDomain>::Network(std::vector<lay>&& layers) noexcept
+	Network<mathDomain>::Network(NetworkTopology<mathDomain>&& topology) noexcept
+		: _topology(std::move(topology))
 	{
-		for (auto&& layer: layers)
-			_layers.emplace_back(std::move(layer));
-		
-		for (size_t l = 1; l < _layers.size(); ++l)
-			assert(_layers[l]->GetNumberOfInputs() == _layers[l - 1]->GetNumberOfOutputs());
 	}
 	
 	template<MathDomain mathDomain>
 	Network<mathDomain>::Network(std::istream& stream) noexcept
+		: _topology(stream)
 	{
-		*this >> stream;
 	}
 	
 	template<MathDomain mathDomain>
 	std::ostream& Network<mathDomain>::operator <<(std::ostream& stream) const noexcept
 	{
-		stream << _layers.size() << std::endl;
-		for (const auto& layer: _layers)
-			*layer << stream;
-	
+		_topology << stream;
 		return stream;
 	}
 	
 	template<MathDomain mathDomain>
 	std::istream& Network<mathDomain>::operator >>(std::istream& stream) noexcept
 	{
-		_layers.clear();
-		
-		std::string line;
-		
-		std::getline(stream, line);
-		const size_t nLayers = static_cast<size_t>(std::atoi(line.c_str()));
-		
-		for (size_t l = 0; l < nLayers; ++l)
-		{
-			std::getline(stream, line);
-			const LayerType type = GetLayerType(line);
-			
-			std::getline(stream, line);
-			const size_t nInput = static_cast<size_t>(std::atoi(line.c_str()));
-			
-			std::getline(stream, line);
-			const size_t nOutput = static_cast<size_t>(std::atoi(line.c_str()));
-			
-			std::getline(stream, line);
-			const ActivationFunctionType activationFunctionType = GetActivationFunctionType(line);
-			auto activationFunction = ActivationFunctionFactory<mathDomain>::Create(activationFunctionType);
-			
-			auto layer = LayerFactory<mathDomain>::Create(type, nInput, nOutput, std::move(activationFunction),
-			                                              std::move(TrivialBiasWeightInitializer<mathDomain>()));
-			*layer >> stream;
-			
-			_layers.emplace_back(std::move(layer));
-		}
-	
+		_topology >> stream;
 		return stream;
 	}
 	
@@ -71,14 +36,7 @@ namespace nn
 	{
 		Stopwatch sw(true);
 		
-		// use input for first layer
-		_layers.front()->Evaluate(in);
-		
-		for (size_t l = 1; l < GetNumberOfLayers() - 1; ++l)
-			_layers[l]->Evaluate(_layers[l - 1]->GetActivation());
-		
-		// use output column for last layer!
-		_layers.back()->Evaluate(_layers[GetNumberOfLayers() - 2]->GetActivation(), &out);
+		_topology.Evaluate(in, false, &out);
 		
 		sw.Stop();
 		if (debugLevel > 1)
@@ -134,7 +92,7 @@ namespace nn
 				const auto modelOutput = modelOutputCache.insert({ networkData.expectedOutput.nCols(), mat(networkData.expectedOutput.nRows(), networkData.expectedOutput.nCols()) }).first;
 				Evaluate(modelOutput->second, networkData.input, networkTrainingData.debugLevel);
 				
-				const double totalCost =  optimizer.GetCostFunction().Evaluate(modelOutput->second, networkData.expectedOutput, _layers, networkTrainingData.hyperParameters.lambda);
+				const double totalCost =  optimizer.GetCostFunction().Evaluate(modelOutput->second, networkData.expectedOutput, _topology, networkTrainingData.hyperParameters.lambda);
 				std::cout << "\t###\tTotal Cost = " << totalCost << " ###" << std::endl;
 			}
 		};

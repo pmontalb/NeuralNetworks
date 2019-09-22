@@ -9,11 +9,11 @@ namespace nn
 	class BatchedGradientOptimizer: public GradientOptimizer<mathDomain>
 	{
 	public:
-		BatchedGradientOptimizer(const typename GradientOptimizer<mathDomain>::Layers& layers,
+		BatchedGradientOptimizer(const NetworkTopology<mathDomain>& topology,
 		                         const size_t miniBatchSize,
 		                         std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
 		                         std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept
-				: GradientOptimizer<mathDomain>(layers, std::move(costFunction)), _miniBatchSize(miniBatchSize), _miniBatchShuffler(std::move(miniBatchShuffler))
+				: GradientOptimizer<mathDomain>(topology, std::move(costFunction)), _miniBatchSize(miniBatchSize), _miniBatchShuffler(std::move(miniBatchShuffler))
 		{
 		}
 		
@@ -53,8 +53,8 @@ namespace nn
 			
 			const double averageLearningRate = batchData.networkTrainingData.hyperParameters.GetAverageLearningRate();
 			const double regularizationFactor = 1.0 - (batchData.networkTrainingData.hyperParameters.learningRate * batchData.networkTrainingData.hyperParameters.lambda) / batchData.networkTrainingData.trainingData.GetNumberOfSamples();
-			for (size_t l = 0; l < this->_layers.size(); ++l)
-				this->_layers[l]->Update(this->_biasGradients[l], this->_weightGradients[l], averageLearningRate, regularizationFactor);
+			for (size_t l = 0; l < this->_topology.GetSize(); ++l)
+				this->_topology[l]->Update(this->_biasGradients[l], this->_weightGradients[l], averageLearningRate, regularizationFactor);
 			
 			sw.Stop();
 			

@@ -8,21 +8,21 @@ namespace nn
 	class BatchedStochasticGradientDescent final: public BatchedGradientOptimizer<mathDomain>
 	{
 	public:
-		BatchedStochasticGradientDescent(const typename BatchedGradientOptimizer<mathDomain>::Layers& layers,
+		BatchedStochasticGradientDescent(const NetworkTopology<mathDomain>& topology,
 		                                 const size_t miniBatchSize,
 				                         std::unique_ptr<ICostFunction<mathDomain>>&& costFunction,
 				                         std::unique_ptr<IShuffler<mathDomain>>&& miniBatchShuffler) noexcept
-			: BatchedGradientOptimizer<mathDomain>(layers, miniBatchSize, std::move(costFunction), std::move(miniBatchShuffler))
+			: BatchedGradientOptimizer<mathDomain>(topology, miniBatchSize, std::move(costFunction), std::move(miniBatchShuffler))
 		{
-			for (size_t l = 0; l < layers.size(); ++l)
+			for (const auto& layer: this->_topology)
 			{
 				_biasGradientCache.emplace_back(
-						Matrix<mathDomain>(static_cast<unsigned>(layers[l]->GetBias().size()),
+						Matrix<mathDomain>(static_cast<unsigned>(layer->GetBias().size()),
 						                   static_cast<unsigned>(this->_miniBatchSize), 0.0));
 				
 				_weightGradientCache.emplace_back(
-						Tensor<mathDomain>(static_cast<unsigned>(layers[l]->GetWeight().nRows()),
-						                   static_cast<unsigned>(layers[l]->GetWeight().nCols()),
+						Tensor<mathDomain>(static_cast<unsigned>(layer->GetWeight().nRows()),
+						                   static_cast<unsigned>(layer->GetWeight().nCols()),
 						                   static_cast<unsigned>(this->_miniBatchSize), 0.0));
 			}
 		}
@@ -31,20 +31,21 @@ namespace nn
 		virtual void TrainMiniBatch(MiniBatchData<mathDomain>& batchData) noexcept
 		{
 			// reset cache
-			for (size_t l = 0; l < this->_layers.size(); ++l)
+			for (size_t l = 0; l < this->_topology.GetSize(); ++l)
 			{
 				dm::detail::Zero(this->_biasGradients[l].GetBuffer());
 				dm::detail::Zero(this->_weightGradients[l].GetBuffer());
 			}
 			
 			// calculates analytically the gradient, by means of backward differentiation
+			_needGradient = this->_topology.back()->GetBestCostFunctionType() != this->_costFunction->GetType();
 			AdjointDifferentiation(batchData);
 		}
 		
 		void AdjointDifferentiation(MiniBatchData<mathDomain>& batchData) noexcept
 		{
 			Stopwatch sw(true);
-			const size_t nLayers = this->_layers.size();
+			const size_t nLayers = this->_topology.GetSize();
 			
 			// reset weight cache
 			for (size_t l = 0; l < nLayers; ++l)
@@ -58,29 +59,27 @@ namespace nn
 						                           std::forward_as_tuple(Vector<mathDomain>(static_cast<unsigned>(actualMiniBatchSize), 1.0))).first;
 			// network evaluation: feed forward
 			Matrix<mathDomain> input(batchData.networkTrainingData.trainingData.input, batchData.startIndex, batchData.endIndex);
-			this->_layers[0]->Evaluate(input);
-			for (size_t l = 1; l < nLayers; ++l)
-				this->_layers[l]->Evaluate(this->_layers[l - 1]->GetActivation());
+			this->_topology.Evaluate(input, _needGradient);
 			
 			// *** Back propagation of the last layer ***
 			// NB override last layer's activation with the cost function derivative!
 			Matrix<mathDomain> expectedOutput(batchData.networkTrainingData.trainingData.expectedOutput, batchData.startIndex, batchData.endIndex);
-			auto& costFunctionGradient = this->_layers.back()->GetActivation();
+			auto& costFunctionGradient = this->_topology.back()->GetActivation();
 			assert(costFunctionGradient.size() == expectedOutput.size());
-			this->_costFunction->EvaluateGradient(costFunctionGradient, expectedOutput, this->_layers.back()->GetActivationGradient());
+			this->_costFunction->EvaluateGradient(costFunctionGradient, expectedOutput, this->_topology.back()->GetActivationGradient());
 			
 			costFunctionGradient.RowWiseSum(this->_biasGradients.back(), onesCacheIter->second);
 			Tensor<mathDomain>::KroneckerProduct(this->_weightGradientCache.back(),
 			                                     costFunctionGradient,
-			                                     this->_layers[nLayers - 2]->GetActivation());
+			                                     this->_topology[nLayers - 2]->GetActivation());
 			this->_weightGradientCache.back().CubeWiseSum(this->_weightGradients.back());
 			// ***
 			
 			// now back-propagate through the remaining layers
 			for (size_t l = 2; l <= nLayers; ++l)
 			{
-				auto& nextLayer = this->_layers[nLayers - l + 1];
-				auto& layer     = this->_layers[nLayers - l];
+				auto& nextLayer = this->_topology[nLayers - l + 1];
+				auto& layer     = this->_topology[nLayers - l];
 				
 				nextLayer->GetWeight().Multiply(_biasGradientCache[nLayers - l],
 						                        l == 2 ? costFunctionGradient : _biasGradientCache[nLayers - l + 1], MatrixOperation::Transpose);
@@ -90,7 +89,7 @@ namespace nn
 				
 				Tensor<mathDomain>::KroneckerProduct(this->_weightGradientCache[nLayers - l],
 				                                     _biasGradientCache[nLayers - l],
-				                                     l == 2 ? input : this->_layers[nLayers - l - 1]->GetActivation());
+				                                     l == 2 ? input : this->_topology[nLayers - l - 1]->GetActivation());
 				this->_weightGradientCache[nLayers - l].CubeWiseSum(this->_weightGradients[nLayers - l]);
 			}
 			
@@ -105,6 +104,8 @@ namespace nn
 		std::vector<Tensor<mathDomain>> _weightGradientCache;
 		
 		std::unordered_map<size_t, Vector<mathDomain>> _onesCache;
+		
+		bool _needGradient = true;
 	};
 	
 	template<MathDomain mathDomain>

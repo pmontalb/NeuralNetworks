@@ -3,7 +3,7 @@
 #include <Optimizers/MiniBatchData.h>
 #include <NeuralNetworks/Stopwatch.h>
 #include <NeuralNetworks/Layers/Initializers/IBiasWeightInitializer.h>
-#include <NeuralNetworks/Layers/ILayer.h>
+#include <NeuralNetworks/Layers/NetworkTopology.h>
 
 #include <NeuralNetworks/ISerializable.h>
 #include <NeuralNetworks/Activations/ActivationFunctionFactory.h>
@@ -19,9 +19,8 @@ namespace nn
 	{
 		using mat = Matrix<mathDomain>;
 		using vec = Vector<mathDomain>;
-		using lay = std::unique_ptr<ILayer<mathDomain>>;
 	public:
-		explicit Network(std::vector<lay>&& layers) noexcept;
+		explicit Network(NetworkTopology<mathDomain>&& topology) noexcept;
 		
 		explicit Network(std::istream& stream) noexcept;
 		
@@ -32,11 +31,11 @@ namespace nn
 		std::ostream& operator <<(std::ostream& stream) const noexcept override;
 		std::istream& operator >>(std::istream& stream) noexcept override;
 		
-		inline const std::vector<lay>& GetLayers() const noexcept { return _layers; }
-		inline auto GetNumberOfLayers() const noexcept { return GetLayers().size(); }
+		inline const NetworkTopology<mathDomain>& GetTopology() const noexcept { return _topology; }
+		inline auto GetNumberOfLayers() const noexcept { return _topology().GetSize(); }
 		
 	private:
-		std::vector<lay> _layers {};
+		NetworkTopology<mathDomain> _topology;
 	};
 }
 

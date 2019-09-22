@@ -18,7 +18,7 @@ namespace nn
 		
 		constexpr LayerType GetType() const noexcept override { return LayerType::Dense; }
 		
-		void Evaluate(const typename Layer<mathDomain>::Matrix& input, typename Layer<mathDomain>::Matrix* const output) noexcept override
+		void Evaluate(const typename Layer<mathDomain>::Matrix& input, const bool needGradient, typename Layer<mathDomain>::Matrix* const output) noexcept override
 		{
 			auto zMatrixIter = this->_zMatrix.find(input.nCols());
 			if (zMatrixIter == this->_zMatrix.end())
@@ -45,16 +45,18 @@ namespace nn
 					                                                  std::forward_as_tuple(typename Layer<mathDomain>::Matrix(zMatrixIter->second.nRows(), zMatrixIter->second.nCols()))).first;
 				this->_lastActivation = &activationIter->second;
 				
+				assert(activationIter->second.size() == zMatrixIter->second.size());
+				this->_activationFunction->Evaluate(activationIter->second, zMatrixIter->second);
+				
+				// still need to retrieve the cache, even though gradient is not needed
 				auto activationGradientIter = this->_batchedActivationGradient.find(input.nCols());
 				if (activationGradientIter == this->_batchedActivationGradient.end())
 					activationGradientIter = this->_batchedActivationGradient.emplace(std::piecewise_construct,
 					                                                                  std::forward_as_tuple(input.nCols()),
 					                                                                  std::forward_as_tuple(typename Layer<mathDomain>::Matrix(zMatrixIter->second.nRows(), zMatrixIter->second.nCols()))).first;
 				this->_lastActivationGradient = &activationGradientIter->second;
-				
-				assert(activationIter->second.size() == zMatrixIter->second.size());
-				this->_activationFunction->Evaluate(activationIter->second, zMatrixIter->second);
-				this->_activationFunction->EvaluateGradient(activationGradientIter->second, zMatrixIter->second);
+				if (needGradient)
+					this->_activationFunction->EvaluateGradient(activationGradientIter->second, zMatrixIter->second, activationIter->second);
 			}
 			else
 				this->_activationFunction->Evaluate(*output, zMatrixIter->second);
