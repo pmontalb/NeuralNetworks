@@ -3,3 +3,6 @@ cmake-*/
 *.swp
 
 Data/*npy
+weight.*
+bias.*
+*.nn

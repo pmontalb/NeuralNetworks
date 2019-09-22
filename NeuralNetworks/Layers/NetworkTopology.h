@@ -31,6 +31,12 @@ namespace nn
 			*this >> stream;
 		}
 		
+		virtual ~NetworkTopology() override = default;
+		NetworkTopology(const NetworkTopology&) = delete;
+		NetworkTopology& operator=(const NetworkTopology&) = delete;
+		NetworkTopology(NetworkTopology&&) = default;
+		NetworkTopology& operator=(NetworkTopology&&) = default;
+		
 		inline size_t GetSize() const noexcept { return _layers.size(); }
 		
 		void Evaluate(const Matrix& input, const bool needGradient, Matrix* const output = nullptr) const noexcept

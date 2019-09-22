@@ -19,6 +19,8 @@ namespace nn
 		using Vector = Bias;
 		using Matrix = Weight;
 		
+		ILayer() noexcept = default;
+		
 		virtual LayerType GetType() const noexcept = 0;
 		
 		virtual void Evaluate(const Matrix& input, const bool needGradient, Matrix* const output = nullptr) noexcept = 0;

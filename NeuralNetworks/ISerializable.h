@@ -5,7 +5,11 @@ namespace nn
 	class ISerializable
 	{
 	public:
-		virtual ~ISerializable() = default;
+		ISerializable() noexcept = default;
+		virtual ~ISerializable() noexcept = default;
+		ISerializable(const ISerializable&) noexcept = default;
+		ISerializable& operator=(const ISerializable&) noexcept = default;
+		
 		virtual std::ostream& operator <<(std::ostream& stream) const noexcept = 0;
 		virtual std::istream& operator >>(std::istream& stream) noexcept = 0;
 		

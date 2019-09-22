@@ -83,17 +83,17 @@ int main()
 	data.hyperParameters.learningRate = 0.1;
 	data.hyperParameters.lambda = 50.0;
 	
-	std::vector<std::unique_ptr<nn::ILayer<md>>> networkTopology;
+	std::vector<std::unique_ptr<nn::ILayer<md>>> layers;
 //	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 100, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
-	networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 100, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
-		networkTopology.emplace_back(std::make_unique<nn::DenseLayer<md>>(100, 10,  std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
+	layers.emplace_back(std::make_unique<nn::DenseLayer<md>>(784, 100, std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
+	layers.emplace_back(std::make_unique<nn::DenseLayer<md>>(100, 10,  std::make_unique<nn::SigmoidActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 	//	networkTopology.emplace_back(std::make_unique<nn::SoftMaxLayer<md>>(100, 10,  std::make_unique<nn::SoftMaxActivationFunction<md>>(), nn::SmallVarianceRandomBiasWeightInitializer<md>()));
 //	networkTopology.emplace_back(std::make_unique<nn::SoftMaxLayer<md>>(100, 10, std::make_unique<nn::SoftMaxActivationFunction<md>>(), nn::ZeroBiasWeightInitializer<md>()));
-	nn::Network<md> network(std::move(networkTopology));
+	nn::Network<md> network((nn::NetworkTopology<md>(std::move(layers))));
 	
-//	nn::BatchedSgd<md> optimizer(network.GetLayers(), data.hyperParameters.miniBatchSize, std::make_unique<nn::LogLikelihoodCostFunction<md>>(), std::make_unique<nn::RandomShuffler<md>>());
-//	nn::BatchedSgd<md> optimizer(network.GetLayers(), data.hyperParameters.miniBatchSize, std::make_unique<nn::LogLikelihoodCostFunction<md>>(), std::make_unique<nn::IdentityShuffler<md>>());
-	nn::BatchedSgd<md> optimizer(network.GetLayers(), data.hyperParameters.miniBatchSize, std::make_unique<nn::CrossEntropyCostFunction<md>>(), std::make_unique<nn::RandomShuffler<md>>());
+//	nn::BatchedSgd<md> optimizer(network.GetTopology(), data.hyperParameters.miniBatchSize, std::make_unique<nn::LogLikelihoodCostFunction<md>>(), std::make_unique<nn::RandomShuffler<md>>());
+//	nn::BatchedSgd<md> optimizer(network.GetTopology(), data.hyperParameters.miniBatchSize, std::make_unique<nn::LogLikelihoodCostFunction<md>>(), std::make_unique<nn::IdentityShuffler<md>>());
+	nn::BatchedSgd<md> optimizer(network.GetTopology(), data.hyperParameters.miniBatchSize, std::make_unique<nn::CrossEntropyCostFunction<md>>(), std::make_unique<nn::RandomShuffler<md>>());
 	network.Train(optimizer, data);
 	return 0;
 }
