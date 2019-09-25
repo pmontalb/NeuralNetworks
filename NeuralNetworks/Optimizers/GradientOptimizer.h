@@ -16,6 +16,8 @@ namespace nn
 		GradientOptimizer(const NetworkTopology<mathDomain>& topology, std::unique_ptr<ICostFunction < mathDomain>>&& costFunction) noexcept
 			: _topology(topology), _costFunction(std::move(costFunction))
 		{
+			_biasGradients.reserve(_topology.GetSize());
+			_weightGradients.reserve(_topology.GetSize());
 			for (const auto& layer: _topology)
 			{
 				_biasGradients.emplace_back(Vector<mathDomain>(static_cast<unsigned>(layer->GetNumberOfOutputs()), 0.0));

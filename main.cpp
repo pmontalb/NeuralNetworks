@@ -78,7 +78,7 @@ int main()
 	data.epochCalculationAccuracyTestData = 1;
 	data.nMaxEpochsWithNoScoreImprovements = 50;
 	
-	data.hyperParameters.nEpochs = 10000;
+	data.hyperParameters.nEpochs = 3;
 	data.hyperParameters.miniBatchSize = 10;
 	data.hyperParameters.learningRate = 0.1;
 	data.hyperParameters.lambda = 50.0;
@@ -93,7 +93,7 @@ int main()
 	
 //	nn::BatchedSgd<md> optimizer(network.GetTopology(), data.hyperParameters.miniBatchSize, std::make_unique<nn::LogLikelihoodCostFunction<md>>(), std::make_unique<nn::RandomShuffler<md>>());
 //	nn::BatchedSgd<md> optimizer(network.GetTopology(), data.hyperParameters.miniBatchSize, std::make_unique<nn::LogLikelihoodCostFunction<md>>(), std::make_unique<nn::IdentityShuffler<md>>());
-	nn::BatchedSgd<md> optimizer(network.GetTopology(), data.hyperParameters.miniBatchSize, std::make_unique<nn::CrossEntropyCostFunction<md>>(), std::make_unique<nn::RandomShuffler<md>>());
+	nn::BatchedSgd<md> optimizer(network.GetTopology(), data.hyperParameters.miniBatchSize, std::make_unique<nn::CrossEntropyCostFunction<md>>(), std::make_unique<nn::IdentityShuffler<md>>());
 	network.Train(optimizer, data);
 	return 0;
 }
