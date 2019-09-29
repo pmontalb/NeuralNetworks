@@ -1,72 +1,51 @@
 #pragma once
 
 #include <NeuralNetworks/Optimizers/BatchedGradientOptimizer.h>
+#include <TensorCollection.h>
 
 namespace nn
 {
 	namespace detail
 	{
-		template<MathDomain md>
-		using CsrMatrix = cl::CompressedSparseRowMatrix<MemorySpace::Device, md>;
+		template<MathDomain mathDomain>
+		static inline std::vector<std::tuple<size_t, size_t, size_t>> GetWeightSizes(const NetworkTopology<mathDomain> &topology, const size_t miniBatchSize)
+		{
+			std::vector<std::tuple<size_t, size_t, size_t>> ret;
+			auto sizes = topology.GetTransposedSizes();
+			for (auto& size: sizes)
+				ret.emplace_back(std::make_tuple(size.first, size.second, miniBatchSize));
+			
+			return ret;
+		};
+		
+		template<MathDomain mathDomain>
+		static inline std::vector<std::pair<size_t, size_t>> GetBiasSizes(const NetworkTopology<mathDomain> &topology, const size_t miniBatchSize)
+		{
+			std::vector<std::pair<size_t, size_t>> ret;
+			auto sizes = topology.GetTransposedSizes();
+			for (auto& size: sizes)
+				ret.emplace_back(size.first, miniBatchSize);
+			
+			return ret;
+		};
 		
 		template<MathDomain mathDomain>
 		struct MiniBatchCache
 		{
-			std::vector<Matrix<mathDomain>> biasGradients;
-			std::vector<Tensor<mathDomain>> weightGradients;
-			
+			cl::ColumnWiseMatrixCollection<MemorySpace::Device, mathDomain> biasGradients;
+			cl::TensorCollection<MemorySpace::Device, mathDomain> weightGradients;
 			Vector<mathDomain> ones;
 			
-			#ifndef RUN_MULTIPLE_ADD
-				std::vector<CsrMatrix<mathDomain>> eye;
-			#endif
-			
 			explicit MiniBatchCache(const NetworkTopology<mathDomain>& topology, const size_t miniBatchSize)
-				: ones(static_cast<unsigned>(miniBatchSize), 1.0)
+				: biasGradients(GetBiasSizes(topology, miniBatchSize)),
+				  weightGradients(GetWeightSizes(topology, miniBatchSize)),
+				  ones(static_cast<unsigned>(miniBatchSize), 1.0)
 			{
-				biasGradients.reserve(topology.GetSize());
-				weightGradients.reserve(topology.GetSize());
-				
-				#ifndef RUN_MULTIPLE_ADD
-					eye.reserve(topology.GetSize());
-				#endif
-				
-				for (const auto& layer: topology)
-				{
-					biasGradients.emplace_back(Matrix<mathDomain>(static_cast<unsigned>(layer->GetBias().size()),
-							                                      static_cast<unsigned>(miniBatchSize),
-							                                      0.0));
-					
-					weightGradients.emplace_back(Tensor<mathDomain>(static_cast<unsigned>(layer->GetWeight().nRows()),
-							                                        static_cast<unsigned>(layer->GetWeight().nCols()),
-							                                        static_cast<unsigned>(miniBatchSize), 0.0));
-					
-					#ifndef RUN_MULTIPLE_ADD
-						const size_t weightMatrixSize = layer->GetWeight().size();
-						Vector<MathDomain::Int> nNonZeroRows(static_cast<unsigned>(weightMatrixSize * miniBatchSize));
-						nNonZeroRows.LinSpace(0, static_cast<int>(nNonZeroRows.size() - 1));
-						nNonZeroRows.Scale(miniBatchSize);
-						
-						std::vector<int> nonZeroColumnIndicesCpu(nNonZeroRows.size());
-						for (size_t i = 0; i < weightMatrixSize; ++i)
-						{
-							for (size_t k = 0; k < miniBatchSize; ++k)
-								nonZeroColumnIndicesCpu[k + miniBatchSize * i] = static_cast<int>(k * weightMatrixSize + i);
-						}
-						Vector<MathDomain::Int> nonZeroColumnIndices(nonZeroColumnIndicesCpu);
-						eye.emplace_back(CsrMatrix<mathDomain>(static_cast<unsigned>(weightMatrixSize),
-								                               static_cast<unsigned>(nNonZeroRows.size()),
-								                               std::move(nonZeroColumnIndices),
-								                               std::move(nNonZeroRows),
-								                               1.0));
-					#endif
-				}
 			}
 		
 			void Reset()
 			{
-				for (auto& weightGradient: weightGradients)
-					dm::detail::Zero(weightGradient.GetBuffer());
+				dm::detail::Zero(weightGradients.Get().GetBuffer());
 			}
 		};
 		
@@ -91,11 +70,8 @@ namespace nn
 		virtual void TrainMiniBatch(MiniBatchData<mathDomain>& batchData) noexcept
 		{
 			// reset cache
-			for (size_t l = 0; l < this->_topology.GetSize(); ++l)
-			{
-				dm::detail::Zero(this->_biasGradients[l].GetBuffer());
-				dm::detail::Zero(this->_weightGradients[l].GetBuffer());
-			}
+			dm::detail::Zero(this->_biasGradients.Get().GetBuffer());
+			dm::detail::Zero(this->_weightGradients.Get().GetBuffer());
 			
 			// calculates analytically the gradient, by means of backward differentiation
 			_needGradient = this->_topology.back()->GetBestCostFunctionType() != this->_costFunction->GetType();
@@ -112,56 +88,43 @@ namespace nn
 			// retrieve cached quantities
 			auto cacheIter = _cache.find(actualMiniBatchSize);
 			if (cacheIter == _cache.end())
-				cacheIter = _cache.emplace(std::piecewise_construct,
-				                           std::forward_as_tuple(actualMiniBatchSize),
+				cacheIter = _cache.emplace(std::piecewise_construct, std::forward_as_tuple(actualMiniBatchSize),
 				                           std::forward_as_tuple(this->_topology, actualMiniBatchSize)).first;
-			// reset weight cache
-			cacheIter->second.Reset();
+			else
+				// reset weight gradient cache
+				cacheIter->second.Reset();
+			auto& cache = cacheIter->second;
 			
 			// network evaluation: feed forward
 			Matrix<mathDomain> input(batchData.networkTrainingData.trainingData.input, batchData.startIndex, batchData.endIndex);
-			this->_topology.Evaluate(input, _needGradient);
+			this->_topology.Evaluate(input, _needGradient);  // compute y = f(z_L)
 			
 			// *** Back propagation of the last layer ***
-			// NB override last layer's activation with the cost function derivative!
 			Matrix<mathDomain> expectedOutput(batchData.networkTrainingData.trainingData.expectedOutput, batchData.startIndex, batchData.endIndex);
-			auto& costFunctionGradient = this->_topology.back()->GetActivation();
-			assert(costFunctionGradient.size() == expectedOutput.size());
+			auto& costFunctionGradient = this->_topology.back()->GetActivation();  // dL/dy \outerdot f'(z_L) (delta_L in some literature)
+			// NB override last layer's activation with the cost function derivative!
 			this->_costFunction->EvaluateGradient(costFunctionGradient, expectedOutput, this->_topology.back()->GetActivationGradient());
+			costFunctionGradient.RowWiseSum(this->_biasGradients.back(), cache.ones);  // dL/db_L == dL/dy
 			
-			costFunctionGradient.RowWiseSum(this->_biasGradients.back(), cacheIter->second.ones);
-			Tensor<mathDomain>::KroneckerProduct(cacheIter->second.weightGradients.back(),
-			                                     costFunctionGradient,
-			                                     this->_topology[nLayers - 2]->GetActivation());
-			
-			#ifndef RUN_MULTIPLE_ADD
-				cacheIter->second.weightGradients.back().CubeWiseSum(this->_weightGradients.back(), cacheIter->second.eye.back());
-			#else
-				cacheIter->second.weightGradients.back().CubeWiseSum(this->_weightGradients.back());
-			#endif
-			// ***
+			// dL/dW_L = dL/db_L \cdot f(z_{L - 1})
+			Tensor<mathDomain>::AccumulateKroneckerProduct(this->_weightGradients.back(),
+					                                       costFunctionGradient,
+					                                       this->_topology[nLayers - 2]->GetActivation());
+			//***
 			
 			// now back-propagate through the remaining layers
 			for (size_t l = 2; l <= nLayers; ++l)
 			{
-				auto& nextLayer = this->_topology[nLayers - l + 1];
-				auto& layer     = this->_topology[nLayers - l];
+				// dL/db_l = (W_l^T * dL/db_{l + 1}) \outerdot f'(z_l)
+				this->_topology[nLayers - l + 1]->GetWeight().Multiply(cache.biasGradients[nLayers - l],
+						                                               l == 2 ? costFunctionGradient : cache.biasGradients[nLayers - l + 1], MatrixOperation::Transpose);
+				cache.biasGradients[nLayers - l] %= this->_topology[nLayers - l]->GetActivationGradient();
+				cache.biasGradients[nLayers - l].RowWiseSum(this->_biasGradients[nLayers - l], cache.ones);
 				
-				nextLayer->GetWeight().Multiply(cacheIter->second.biasGradients[nLayers - l],
-						                        l == 2 ? costFunctionGradient : cacheIter->second.biasGradients[nLayers - l + 1], MatrixOperation::Transpose);
-				
-				cacheIter->second.biasGradients[nLayers - l] %= layer->GetActivationGradient();
-				cacheIter->second.biasGradients[nLayers - l].RowWiseSum(this->_biasGradients[nLayers - l], cacheIter->second.ones);
-				
-				Tensor<mathDomain>::KroneckerProduct(cacheIter->second.weightGradients[nLayers - l],
-				                                     cacheIter->second.biasGradients[nLayers - l],
-				                                     l == 2 ? input : this->_topology[nLayers - l - 1]->GetActivation());
-				
-				#ifndef RUN_MULTIPLE_ADD
-					cacheIter->second.weightGradients[nLayers - l].CubeWiseSum(this->_weightGradients[nLayers - l], cacheIter->second.eye[nLayers - l]);
-				#else
-					cacheIter->second.weightGradients[nLayers - l].CubeWiseSum(this->_weightGradients[nLayers - l]);
-				#endif
+				// dL/dW_l = dL/db_l \cdot f(z_{L - 1})
+				Tensor<mathDomain>::AccumulateKroneckerProduct(this->_weightGradients[nLayers - l],
+				                                               cache.biasGradients[nLayers - l],
+				                                               l == 2 ? input : this->_topology[nLayers - l - 1]->GetActivation());
 			}
 			
 			sw.Stop();

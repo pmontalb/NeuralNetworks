@@ -160,9 +160,8 @@ namespace nnt
 
 		nn::Vector<MathDomain::Int> cache1(10000u);
 		nn::Vector<MathDomain::Int> cache2(10000u);
-		nn::Vector<MathDomain::Int> cache3(10000u);
 
-		std::vector<int> expectedScores = { 9075, 9196, 9305 };
+		std::vector<int> expectedScores = { 9046, 9194, 9292 };
 		std::vector<int> actualScores;
 		std::function<double(nn::Matrix<md>&, const nn::Matrix<md>&)> evaluator = [&](nn::Matrix<md>& modelOutput, const nn::Matrix<md>& expectedOutput)
 		{
@@ -172,7 +171,7 @@ namespace nnt
 			assert(expectedOutput.nCols() == cache2.size());
 			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
 
-			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			int score = cache1.CountEquals(cache2);
 
 			actualScores.push_back(score);
 
@@ -208,7 +207,6 @@ namespace nnt
 
 		nn::Vector<MathDomain::Int> cache1(10000u);
 		nn::Vector<MathDomain::Int> cache2(10000u);
-		nn::Vector<MathDomain::Int> cache3(10000u);
 		size_t currentIter = 0;
 
 		std::vector<int> expectedScores = { 9393, 9397, 9502 };
@@ -221,7 +219,7 @@ namespace nnt
 			assert(expectedOutput.nCols() == cache2.size());
 			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
 
-			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			int score = cache1.CountEquals(cache2);
 
 			actualScores.push_back(score);
 
@@ -257,7 +255,6 @@ namespace nnt
 
 		nn::Vector<MathDomain::Int> cache1(10000u);
 		nn::Vector<MathDomain::Int> cache2(10000u);
-		nn::Vector<MathDomain::Int> cache3(10000u);
 		size_t currentIter = 0;
 
 		std::vector<int> expectedScores = { 9213, 9376, 9451 };
@@ -270,7 +267,7 @@ namespace nnt
 			assert(expectedOutput.nCols() == cache2.size());
 			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
 
-			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			int score = cache1.CountEquals(cache2);
 			actualScores.push_back(score);
 
 			return static_cast<double>(score);
@@ -305,7 +302,6 @@ namespace nnt
 
 		nn::Vector<MathDomain::Int> cache1(10000u);
 		nn::Vector<MathDomain::Int> cache2(10000u);
-		nn::Vector<MathDomain::Int> cache3(10000u);
 		size_t currentIter = 0;
 
 		std::vector<int> expectedScores = { 9416, 9448, 9516 };
@@ -318,7 +314,7 @@ namespace nnt
 			assert(expectedOutput.nCols() == cache2.size());
 			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
 
-			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			int score = cache1.CountEquals(cache2);
 
 			actualScores.push_back(score);
 
@@ -354,7 +350,6 @@ namespace nnt
 
 		nn::Vector<MathDomain::Int> cache1(10000u);
 		nn::Vector<MathDomain::Int> cache2(10000u);
-		nn::Vector<MathDomain::Int> cache3(10000u);
 		size_t currentIter = 0;
 
 		std::vector<int> expectedScores = { 9167, 9330, 9447 };
@@ -367,7 +362,7 @@ namespace nnt
 			assert(expectedOutput.nCols() == cache2.size());
 			expectedOutput.ColumnWiseArgAbsMaximum(cache2);
 
-			int score = cache1.CountEquals(cache2, cache3.GetBuffer());
+			int score = cache1.CountEquals(cache2);
 
 			actualScores.push_back(score);
 

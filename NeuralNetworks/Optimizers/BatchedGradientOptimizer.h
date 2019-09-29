@@ -47,7 +47,7 @@ namespace nn
 		virtual void TrainMiniBatch(MiniBatchData<mathDomain>& batchData) noexcept = 0;
 		
 	private:
-		void UpdateLayers(MiniBatchData<mathDomain>& batchData) const noexcept
+		void UpdateLayers(MiniBatchData<mathDomain>& batchData) noexcept
 		{
 			Stopwatch sw(true);
 			

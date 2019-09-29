@@ -38,6 +38,20 @@ namespace nn
 		NetworkTopology& operator=(NetworkTopology&&) = default;
 		
 		inline size_t GetSize() const noexcept { return _layers.size(); }
+		inline std::vector<size_t> GetNumberOfOutputs() const noexcept
+		{
+			std::vector<size_t> ret;
+			for (const auto& layer: _layers)
+				ret.push_back(layer->GetNumberOfOutputs());
+			return ret;
+		}
+		inline std::vector<std::pair<size_t, size_t>> GetTransposedSizes() const noexcept
+		{
+			std::vector<std::pair<size_t, size_t>> ret;
+			for (const auto& layer: _layers)
+				ret.emplace_back(layer->GetNumberOfOutputs(), layer->GetNumberOfInputs());
+			return ret;
+		}
 		
 		void Evaluate(const Matrix& input, const bool needGradient, Matrix* const output = nullptr) const noexcept
 		{

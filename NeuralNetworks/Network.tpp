@@ -61,7 +61,7 @@ namespace nn
 				if (modelOutput == modelOutputCache.end())
 					modelOutput = modelOutputCache.emplace(std::piecewise_construct,
 							                               std::forward_as_tuple(networkData.expectedOutput.nCols()),
-							                               std::forward_as_tuple( mat(networkData.expectedOutput.nRows(), networkData.expectedOutput.nCols()))).first;
+							                               std::forward_as_tuple(mat(networkData.expectedOutput.nRows(), networkData.expectedOutput.nCols()))).first;
 				Evaluate(modelOutput->second, networkData.input, networkTrainingData.debugLevel);
 				const double accuracy = networkTrainingData.evaluator(modelOutput->second, networkData.expectedOutput);
 				
