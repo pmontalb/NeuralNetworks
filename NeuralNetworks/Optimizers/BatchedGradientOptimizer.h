@@ -52,7 +52,7 @@ namespace nn
 			Stopwatch sw(true);
 			
 			const double averageLearningRate = batchData.networkTrainingData.hyperParameters.GetAverageLearningRate();
-			const double regularizationFactor = 1.0 - (batchData.networkTrainingData.hyperParameters.learningRate * batchData.networkTrainingData.hyperParameters.lambda) / batchData.networkTrainingData.trainingData.GetNumberOfSamples();
+			const double regularizationFactor = 1.0 - (batchData.networkTrainingData.hyperParameters.learningRate * batchData.networkTrainingData.hyperParameters.lambda) / static_cast<double>(batchData.networkTrainingData.trainingData.GetNumberOfSamples());
 			for (size_t l = 0; l < this->_topology.GetSize(); ++l)
 				this->_topology[l]->Update(this->_biasGradients[l], this->_weightGradients[l], averageLearningRate, regularizationFactor);
 			

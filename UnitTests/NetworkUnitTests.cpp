@@ -96,7 +96,7 @@ namespace nnt
 	TEST_F(NetworkTests, SerializationConsistency)
 	{
 		const std::string path = getenv("DATA_PATH");
-		std::ifstream f(path + "Data/network.nn");
+		std::ifstream f(path + "/Data/network.nn");
 		ASSERT_TRUE(f.is_open());
 
 		nn::Network<md> deserializedNetwork(f);

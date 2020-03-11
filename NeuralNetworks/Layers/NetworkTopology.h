@@ -129,6 +129,6 @@ namespace nn
 		const Layer& operator[](const size_t i) const noexcept { return _layers[i]; }
 	
 	protected:
-		Layers _layers;
+		Layers _layers {};
 	};
 }

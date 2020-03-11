@@ -140,31 +140,31 @@
 
 #pragma endregion
 
-__CREATE_FUNCTION_2_ARG(Sigmoid, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_3_ARG(SigmoidPrime, CudaKernelExceptionFactory,MemoryBuffer&, z, const MemoryBuffer&, x, const MemoryBuffer&, sigmoid);
+__CREATE_FUNCTION_2_ARG(Sigmoid, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
+__CREATE_FUNCTION_3_ARG(SigmoidPrime, CudaKernelExceptionFactory,MemoryBuffer&, z, const MemoryBuffer&, x, const MemoryBuffer&, sigmoid)
 
-__CREATE_FUNCTION_2_ARG(HyperbolicTangent, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_2_ARG(HyperbolicTangentPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(HyperbolicTangent, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
+__CREATE_FUNCTION_2_ARG(HyperbolicTangentPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
 
-__CREATE_FUNCTION_2_ARG(RectifiedLinearUnit, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_2_ARG(RectifiedLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(RectifiedLinearUnit, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
+__CREATE_FUNCTION_2_ARG(RectifiedLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
 
-__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnit, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnit, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
+__CREATE_FUNCTION_2_ARG(LeakyRectifiedLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
 
-__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnit, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnit, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
+__CREATE_FUNCTION_2_ARG(InverseSquareRootLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
 
-__CREATE_FUNCTION_2_ARG(ExponentialLinearUnit, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_2_ARG(ExponentialLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(ExponentialLinearUnit, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
+__CREATE_FUNCTION_2_ARG(ExponentialLinearUnitPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
 
-__CREATE_FUNCTION_2_ARG(BentIdentity, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
-__CREATE_FUNCTION_2_ARG(BentIdentityPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_2_ARG(BentIdentity, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
+__CREATE_FUNCTION_2_ARG(BentIdentityPrime, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x)
 
-__CREATE_FUNCTION_4_ARG(SoftMax, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x, MemoryBuffer&, columnWiseCache, MemoryBuffer&, onesCache);
+__CREATE_FUNCTION_4_ARG(SoftMax, CudaKernelExceptionFactory, MemoryBuffer&, z, const MemoryBuffer&, x, MemoryBuffer&, columnWiseCache, MemoryBuffer&, onesCache)
 
-__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunction, CudaKernelExceptionFactory, double&, cost, MemoryBuffer&, x, const MemoryBuffer&, y);
-__CREATE_FUNCTION_3_ARG(LogLikelihoodCostFunction, CudaKernelExceptionFactory, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x);
+__CREATE_FUNCTION_3_ARG(CrossEntropyCostFunction, CudaKernelExceptionFactory, double&, cost, MemoryBuffer&, x, const MemoryBuffer&, y)
+__CREATE_FUNCTION_3_ARG(LogLikelihoodCostFunction, CudaKernelExceptionFactory, double&, cost, MemoryBuffer&, z, const MemoryBuffer&, x)
 
 #pragma region Undef macros
 

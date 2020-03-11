@@ -31,6 +31,8 @@ namespace nn
 			initializer.Set(_bias);
 			initializer.Set(_weight);
 		}
+        Layer(const Layer&) = delete;
+        Layer& operator=(const Layer&) = delete;
 		
 		std::ostream& operator <<(std::ostream& stream) const noexcept override
 		{

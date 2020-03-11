@@ -1,7 +1,7 @@
 
 #include <gtest/gtest.h>
 #include <ColumnWiseMatrix.h>
-#include <CudaLightKernels/Types.h>
+#include <Types.h>
 
 namespace nnt
 {

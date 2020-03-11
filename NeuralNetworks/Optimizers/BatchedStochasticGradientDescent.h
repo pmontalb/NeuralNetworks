@@ -16,7 +16,7 @@ namespace nn
 				ret.emplace_back(std::make_tuple(size.first, size.second, miniBatchSize));
 			
 			return ret;
-		};
+		}
 		
 		template<MathDomain mathDomain>
 		static inline std::vector<std::pair<size_t, size_t>> GetBiasSizes(const NetworkTopology<mathDomain> &topology, const size_t miniBatchSize)
@@ -27,7 +27,7 @@ namespace nn
 				ret.emplace_back(size.first, miniBatchSize);
 			
 			return ret;
-		};
+		}
 		
 		template<MathDomain mathDomain>
 		struct MiniBatchCache
@@ -67,7 +67,7 @@ namespace nn
 		}
 		
 	private:
-		virtual void TrainMiniBatch(MiniBatchData<mathDomain>& batchData) noexcept
+		virtual void TrainMiniBatch(MiniBatchData<mathDomain>& batchData) noexcept override
 		{
 			// reset cache
 			dm::detail::Zero(this->_biasGradients.Get().GetBuffer());
@@ -134,7 +134,7 @@ namespace nn
 		}
 		
 	private:
-		detail::CacheMap<mathDomain> _cache;
+		detail::CacheMap<mathDomain> _cache {};
 		
 		bool _needGradient = true;
 	};

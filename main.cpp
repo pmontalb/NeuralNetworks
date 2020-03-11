@@ -45,8 +45,8 @@ int main()
 		nn::Vector<MathDomain::Int> cache1;
 		nn::Vector<MathDomain::Int> cache2;
 		nn::Vector<MathDomain::Int> cache3;
-		MemoryBuffer cache4;
-		MemoryBuffer cache5;
+		MemoryBuffer cache4 {};
+		MemoryBuffer cache5 {};
 
 		explicit Cache(const unsigned N)
 			: cache1(N), cache2(N), cache3(N)

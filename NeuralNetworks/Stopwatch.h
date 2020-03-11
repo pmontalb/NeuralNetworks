@@ -24,13 +24,13 @@ namespace nn
 			auto GetNanoSeconds() const noexcept { return 0.0; }
 		#endif
 		
-		auto GetMicroSeconds() const noexcept { return GetNanoSeconds() * 1e-3; }
-		auto GetMilliSeconds() const noexcept { return GetNanoSeconds() * 1e-6; }
-		auto GetSeconds() const noexcept { return GetNanoSeconds() * 1e-9; }
+		auto GetMicroSeconds() const noexcept { return static_cast<double>(GetNanoSeconds()) * 1e-3; }
+		auto GetMilliSeconds() const noexcept { return static_cast<double>(GetNanoSeconds()) * 1e-6; }
+		auto GetSeconds() const noexcept { return static_cast<double>(GetNanoSeconds()) * 1e-9; }
 		
 	private:
-		std::chrono::high_resolution_clock::time_point start;
-		std::chrono::high_resolution_clock::time_point stop;
+		std::chrono::high_resolution_clock::time_point start {};
+		std::chrono::high_resolution_clock::time_point stop {};
 	};
 	
 }

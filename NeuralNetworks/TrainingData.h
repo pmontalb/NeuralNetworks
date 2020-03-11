@@ -44,7 +44,7 @@ namespace nn
 		
 		double GetAverageLearningRate() const noexcept
 		{
-			return learningRate / miniBatchSize;
+			return learningRate / static_cast<double>(miniBatchSize);
 		}
 	};
 	
@@ -90,4 +90,4 @@ namespace nn
 		{
 		}
 	};
-};
+}
