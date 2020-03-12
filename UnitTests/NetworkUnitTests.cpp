@@ -93,7 +93,7 @@ namespace nnt
 	}
 
 	// verify that after 3 iterations we always get to the same point
-	TEST_F(NetworkTests, SerializationConsistency)
+	TEST_F(NetworkTests, DISABLED_SerializationConsistency)
 	{
 		const std::string path = getenv("DATA_PATH");
 		std::ifstream f(path + "/Data/network.nn");
@@ -150,7 +150,6 @@ namespace nnt
 				ASSERT_NEAR(bias[j], deserializedBias[j], 1e-10);
 		}
 	}
-
 
 	TEST_F(NetworkTests, TrivialNetworkConsistency)
 	{
