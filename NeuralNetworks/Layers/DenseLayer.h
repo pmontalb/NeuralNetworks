@@ -33,7 +33,7 @@ namespace nn
 				onesCacheIter = _onesCache.emplace(std::piecewise_construct,
 						                           std::forward_as_tuple(input.nCols()),
 				                                   std::forward_as_tuple(typename Layer<mathDomain>::Vector(input.nCols(), 1.0))).first;
-			zMatrixIter->second.AddEqual(this->_bias, onesCacheIter->second, false);
+			zMatrixIter->second.AddEqualBroadcast(this->_bias, onesCacheIter->second, false);
 			
 			// if output is not provided, use the activation buffers, and compute the gradient as well!
 			if (!output)

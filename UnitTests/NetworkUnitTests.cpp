@@ -26,11 +26,11 @@ namespace nnt
 		{
 			const std::string path = getenv("DATA_PATH");
 			
-			auto input = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Input" + extension.at(md) + ".npy", false, true);
+			auto input = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Input" + extension.at(md) + ".npy", false, false, true);
 			if (input.nRows() != nRowsInput) std::abort();
 			if (input.nCols() != nCols) std::abort();
 			
-			auto output = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Output" + extension.at(md) + ".npy", false,true);
+			auto output = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Output" + extension.at(md) + ".npy", false, false,true);
 			if (output.nRows() != nRowsOutput) std::abort();
 			if (output.nCols() != nCols) std::abort();
 			

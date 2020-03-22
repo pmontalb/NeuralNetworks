@@ -72,11 +72,11 @@ namespace nn
 		{
 			std::string weightFileName;
 			std::getline(stream, weightFileName);
-			_weight.ReadFrom(cl::ColumnWiseMatrix<MemorySpace::Device, mathDomain>::MatrixFromBinaryFile(weightFileName, true));
+			_weight.ReadFrom(cl::ColumnWiseMatrix<MemorySpace::Device, mathDomain>::MatrixFromBinaryFile(weightFileName, false, true));
 			
 			std::string biasFileName;
 			std::getline(stream, biasFileName);
-			_bias.ReadFrom(cl::Vector<MemorySpace::Device, mathDomain>::VectorFromBinaryFile(biasFileName, true));
+			_bias.ReadFrom(cl::Vector<MemorySpace::Device, mathDomain>::VectorFromBinaryFile(biasFileName, false, true));
 			
 			return stream;
 		}

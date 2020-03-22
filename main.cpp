@@ -23,13 +23,15 @@ nn::TrainingData<T> GetData(const std::string& fileType, const size_t nRowsInput
 	
 	const std::string path = getenv("DATA_PATH");
 	
-	auto input = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Input" + extension.at(md) + ".npy", false, true);
+	auto input = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Input" + extension.at(md) + ".npy", true, false, true);
 	if (input.nRows() != nRowsInput) std::abort();
 	if (input.nCols() != nCols) std::abort();
+	//input.MatrixToBinaryFile(input, path + "/Data/" + fileType + "Input" + extension.at(md) + ".npy", false, false, "w");
 	
-	auto output = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Output" + extension.at(md) + ".npy", false, true);
+	auto output = cl::ColumnWiseMatrix<MemorySpace::Device, T>::MatrixFromBinaryFile(path + "/Data/" + fileType + "Output" + extension.at(md) + ".npy", true, false, true);
 	if (output.nRows() != nRowsOutput) std::abort();
 	if (output.nCols() != nCols) std::abort();
+	//output.MatrixToBinaryFile(output, path + "/Data/" + fileType + "Output" + extension.at(md) + ".npy", false, false, "w");
 	
 	return nn::TrainingData<T>(std::move(input), std::move(output));
 }
