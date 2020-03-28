@@ -7,7 +7,7 @@ include(cmake/All.cmake)
 set(LANGUAGES_USE_CUDA ON CACHE BOOL "" FORCE)
 
 # CudaLight
-add_subdirectory(../CudaLight ${CMAKE_BINARY_DIR}/CudaLight EXCLUDE_FROM_ALL)
+add_subdirectory(CudaLight ${CMAKE_BINARY_DIR}/CudaLight EXCLUDE_FROM_ALL)
 
 create_cuda_library(
     NAME
@@ -40,7 +40,6 @@ create_executable(
         NeuralNetworks
 )
 
-find_package(GTest REQUIRED)
 create_test(
     NAME
         NnUnitTests
